@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { StrongPassword } from 'src/decorators/strong-password.decorator';
 
 export class SignUpReqDto {
   @IsNotEmpty()
@@ -10,7 +11,7 @@ export class SignUpReqDto {
   email: string;
 
   @IsNotEmpty()
-  @IsString()
+  @StrongPassword()
   password: string;
 
   @IsOptional()
