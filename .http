@@ -17,3 +17,10 @@ Content-Type: application/json
   "email": "john.doe1@example.com",
   "password": "Securepassword1"
 }
+
+### Get Profile
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lMUBleGFtcGxlLmNvbSIsInN1YiI6IjY1MTNhZTAyMTRkY2E5MjQxZTZhMTYyOSIsImlhdCI6MTY5NTc5MjEyNCwiZXhwIjoxNjk1ODc4NTI0fQ.cXiazBCwh0kOfb1CmCgPmsPyT9O9KIzFILKRKBZ8J8o
+
+GET http://localhost:3000/auth/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
