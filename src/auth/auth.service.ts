@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { SignInReqDto, SignUpReqDto } from 'src/user/dto/req.dto';
 import { UserService } from 'src/user/user.service';
 import { SignInResDto } from './dto/res.dto';
-import { ExceptionMassage } from 'src/enums/excepion/exception';
+import { ExceptionMassage } from 'src/enums/exception';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from 'src/schema/user/user';
@@ -13,7 +13,6 @@ import { Model } from 'mongoose';
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userRepository: Model<UserDocument>,
-    private userService: UserService,
     private jwtService: JwtService,
   ) {}
 
@@ -53,7 +52,7 @@ export class AuthService {
    * @throws {BadRequestException} If the user is not found or password does not match.
    */
   async validateUser(email: string, pass: string): Promise<User> {
-    const user = await this.userService.findOneByEmail(email);
+    const user = await this.findOneByEmail(email);
     if (!user) {
       throw new BadRequestException({
         message: ExceptionMassage.USER_NOT_FOUND,

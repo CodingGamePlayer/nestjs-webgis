@@ -5,13 +5,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  UseGuards,
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInReqDto, SignUpReqDto } from 'src/user/dto/req.dto';
 import { SignInResDto } from './dto/res.dto';
-import { AuthGuard } from './auth.guard';
 import { Public } from 'src/decorators/public-api.decoratpr';
 import { User } from 'src/schema/user/user';
 

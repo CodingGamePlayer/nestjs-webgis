@@ -8,6 +8,7 @@ import { AuthGuard } from './auth.guard';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schema/user/user';
 import * as dotenv from 'dotenv';
+import { RolesGuard } from './roles.guard';
 
 dotenv.config();
 
@@ -27,6 +28,10 @@ dotenv.config();
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

@@ -24,3 +24,8 @@ Content-Type: application/json
 GET http://localhost:3000/auth/profile
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
+### Get All Users
+GET http://localhost:3000/user/users?page=1&size=10
+Content-Type: application/json
+Authorization: Bearer {{token}}

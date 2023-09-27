@@ -1,17 +1,20 @@
 import { UserService } from './user.service';
-import { Controller, HttpStatus, Post, HttpCode, Body } from '@nestjs/common';
-import { SignUpReqDto } from './dto/req.dto';
+import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { PageReqDto } from './dto/req.dto';
 import { User } from 'src/schema/user/user';
-import { Public } from 'src/decorators/public-api.decoratpr';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/enums/user-role';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
-  @Post('signup')
-  @Public()
-  @HttpCode(HttpStatus.CREATED)
-  async create(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
-    return this.UserService.create(signUpReqDto);
+  @Get('users')
+  @Roles(UserRole.USER)
+  @HttpCode(HttpStatus.OK)
+  async findAll(@Query() pageReqDto: PageReqDto): Promise<User[]> {
+    const { page, size } = pageReqDto;
+
+    return this.UserService.findAll(page, size);
   }
 }

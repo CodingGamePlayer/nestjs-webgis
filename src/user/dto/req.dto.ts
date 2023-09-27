@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { StrongPassword } from 'src/decorators/strong-password.decorator';
 
 export class SignUpReqDto {
@@ -35,4 +42,16 @@ export class SignInReqDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+}
+
+export class PageReqDto {
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  @IsInt()
+  page: number;
+
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  @IsInt()
+  size: number;
 }
