@@ -27,8 +27,10 @@ export class AuthService {
       signInReqDto.password,
     );
 
-    const { access_token } = await this.createToken(validUser);
-    return new SignInResDto(access_token);
+    const { access_token } = await this.createAccessToken(validUser);
+    const { refresh_token } = await this.createRefreshToken();
+
+    return new SignInResDto(access_token, refresh_token);
   }
 
   /**
@@ -36,11 +38,22 @@ export class AuthService {
    * @param user - The user for whom to create an access token.
    * @returns A promise that resolves to an object containing the access token.
    */
-  async createToken(user: User): Promise<{ access_token: string }> {
+  async createAccessToken(user: User): Promise<{ access_token: string }> {
     const payload = { email: user.email, sub: user['_id'] };
 
     return {
       access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async createRefreshToken(): Promise<{ refresh_token: string }> {
+    const time = new Date().toISOString();
+    const payload = { time };
+
+    return {
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: '7d',
+      }),
     };
   }
 
