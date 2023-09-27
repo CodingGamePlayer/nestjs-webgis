@@ -1,10 +1,10 @@
 ### Create a new User
-POST http://localhost:3000/user/signup
+POST http://localhost:3000/auth/signup
 Content-Type: application/json
 
 {
   "name": "John Doe",
-  "email": "john.doe1@example.com",
+  "email": "john.doe12@example.com",
   "password": "Securepassword1",
   "passwordConfirmation" : "Securepassword1"
 }
@@ -14,7 +14,7 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-  "email": "john.doe1@example.com",
+  "email": "john.doe12@example.com",
   "password": "Securepassword1"
 }
 
