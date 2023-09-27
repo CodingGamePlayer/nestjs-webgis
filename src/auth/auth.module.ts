@@ -9,6 +9,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schema/user/user';
 import * as dotenv from 'dotenv';
 import { RolesGuard } from './roles.guard';
+import { CacheModule } from '@nestjs/cache-manager';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ dotenv.config();
       signOptions: { expiresIn: '1d' },
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    CacheModule.register(),
   ],
   controllers: [AuthController],
   providers: [

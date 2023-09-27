@@ -1,6 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { SignInReqDto, SignUpReqDto } from 'src/user/dto/req.dto';
-import { UserService } from 'src/user/user.service';
 import { SignInResDto } from './dto/res.dto';
 import { ExceptionMassage } from 'src/enums/exception';
 import { JwtService } from '@nestjs/jwt';
@@ -8,11 +7,14 @@ import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from 'src/schema/user/user';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userRepository: Model<UserDocument>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private jwtService: JwtService,
   ) {}
 
@@ -30,6 +32,8 @@ export class AuthService {
     const { access_token } = await this.createAccessToken(validUser);
     const { refresh_token } = await this.createRefreshToken();
 
+    await this.saveRefreshToken(validUser.email, refresh_token);
+
     return new SignInResDto(access_token, refresh_token);
   }
 
@@ -46,6 +50,10 @@ export class AuthService {
     };
   }
 
+  /**
+   * Create a refresh token.
+   * @returns - A promise that resolves to an object containing the refresh token.
+   */
   async createRefreshToken(): Promise<{ refresh_token: string }> {
     const time = new Date().toISOString();
     const payload = { time };
@@ -55,6 +63,17 @@ export class AuthService {
         expiresIn: '7d',
       }),
     };
+  }
+
+  /**
+   * Save a refresh token to the cache.
+   * @param email - The email of the user to whom the refresh token belongs.
+   * @param refreshToken - The refresh token to save.
+   */
+  async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
+    await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
+
+    console.log(await this.cacheManager.get(email));
   }
 
   /**
