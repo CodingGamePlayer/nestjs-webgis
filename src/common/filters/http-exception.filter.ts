@@ -16,15 +16,33 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
-    const errorMessage = exception.message;
+    const errorType = exception.name;
+    const errorResponse = exception.getResponse();
+
+    let firstMessage: unknown = 'An error occurred';
+
+    if (typeof errorResponse === 'object' && 'message' in errorResponse) {
+      const messageField = errorResponse['message'];
+      if (Array.isArray(messageField)) {
+        firstMessage = messageField[0];
+      } else {
+        firstMessage = messageField;
+      }
+    }
+
+    let atLocation: unknown = 'N/A';
+
+    if (typeof errorResponse === 'object' && 'at' in errorResponse) {
+      atLocation = errorResponse['at'];
+    }
 
     if (status < 500) {
       this.logger.log(
-        `Status: ${status}, Error Message: ${errorMessage}, Method: ${request.method}, URL: ${request.url}`,
+        `Status: ${status}, ${errorType}: ${firstMessage}, At: ${atLocation}, Method: ${request.method}, URL: ${request.url}`,
       );
     } else {
       this.logger.error(
-        `Status: ${status}, Error Message: ${errorMessage}, Method: ${request.method}, URL: ${request.url}`,
+        `Status: ${status}, ${errorType}: ${firstMessage}, At: ${atLocation}, Method: ${request.method}, URL: ${request.url}`,
       );
     }
 

@@ -14,6 +14,10 @@ export class SignUpReqDto {
   @StrongPassword()
   password: string;
 
+  @IsNotEmpty()
+  @StrongPassword()
+  passwordConfirmation: string;
+
   @IsOptional()
   @IsString()
   company?: string;
@@ -21,4 +25,14 @@ export class SignUpReqDto {
   @IsOptional()
   @IsString()
   role?: string;
+}
+
+export class SignInReqDto {
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  password: string;
 }

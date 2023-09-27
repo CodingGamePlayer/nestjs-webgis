@@ -14,7 +14,16 @@ export class UserService {
     const user = await this.findOneByEmail(signUpReqDto.email);
 
     if (user) {
-      throw new BadRequestException('Email already exists');
+      throw new BadRequestException({
+        message: 'Email already exists',
+        at: 'UserService.create',
+      });
+    }
+
+    if (signUpReqDto.password !== signUpReqDto.passwordConfirmation) {
+      throw new BadRequestException(
+        'Password and password confirmation must be the same',
+      );
     }
 
     const createdUser = new this.userRepository(signUpReqDto);

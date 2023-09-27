@@ -18,7 +18,7 @@ export class StrongPasswordConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'Password must include at least one uppercase letter, one lowercase letter, and be at least 12 characters long.';
+    return 'Password is not valid.';
   }
 }
 
