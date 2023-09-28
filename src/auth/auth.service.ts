@@ -1,5 +1,10 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
-import { SignInReqDto, SignUpReqDto } from 'src/user/dto/req.dto';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { SignInReqDto, SignUpReqDto } from 'src/auth/dto/req.dto';
 import { SignInResDto } from './dto/res.dto';
 import { ExceptionMassage } from 'src/enums/exception';
 import { JwtService } from '@nestjs/jwt';
@@ -37,6 +42,31 @@ export class AuthService {
     return new SignInResDto(access_token, refresh_token);
   }
 
+  async logout(accessToken: string, refreshToken: string): Promise<void> {
+    if (!accessToken) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthService.logout',
+      });
+    } else if (!refreshToken) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_REFRESH_TOKEN,
+        at: 'AuthService.logout',
+      });
+    }
+
+    await this.saveAccessTokenInBlackList(accessToken);
+    await this.removeRefreshToken(refreshToken);
+  }
+
+  async saveAccessTokenInBlackList(accessToken: string): Promise<void> {
+    await this.cacheManager.set(accessToken, accessToken, 60 * 60 * 24);
+  }
+
+  async removeRefreshToken(refreshToken: string): Promise<void> {
+    await this.cacheManager.del(refreshToken);
+  }
+
   /**
    * Create an access token for the given user.
    * @param user - The user for whom to create an access token.
@@ -71,9 +101,16 @@ export class AuthService {
    * @param refreshToken - The refresh token to save.
    */
   async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
-    await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
+    const savedToken: string = await this.cacheManager.get(email);
 
-    console.log(await this.cacheManager.get(email));
+    if (savedToken) {
+      throw new BadRequestException({
+        message: ExceptionMassage.REFRESH_TOKEN_ALREADY_EXISTS,
+        at: 'AuthService.saveRefreshToken',
+      });
+    }
+
+    await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
   }
 
   /**
@@ -162,5 +199,18 @@ export class AuthService {
   async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
+  }
+
+  async isAccessTokenInBlackList(token: string) {
+    const rusult: string = await this.cacheManager.get(token);
+
+    if (rusult) {
+      return true;
+    }
+  }
+
+  async decodeAccessToken(accessToken: string) {
+    const payload = await this.jwtService.decode(accessToken);
+    return payload;
   }
 }

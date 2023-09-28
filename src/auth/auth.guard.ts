@@ -8,10 +8,16 @@ import {
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from 'src/decorators/public-api.decoratpr';
+import { AuthService } from './auth.service';
+import { ExceptionMassage } from 'src/enums/exception';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService, private reflector: Reflector) {}
+  constructor(
+    private jwtService: JwtService,
+    private reflector: Reflector,
+    private authService: AuthService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -24,10 +30,33 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const token: string = this.extractTokenFromHeader(request);
+    const refreshToken: string = request.headers['refreshtoken'];
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthGuard.canActivate',
+      });
+    }
+
+    const payload = await this.authService.decodeAccessToken(token);
+
+    if (!refreshToken) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_REFRESH_TOKEN,
+        at: 'AuthGuard.canActivate',
+      });
+    }
+
+    const isAccessTokenInBlackList =
+      await this.authService.isAccessTokenInBlackList(token);
+
+    if (isAccessTokenInBlackList) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthGuard.canActivate',
+      });
     }
 
     try {
@@ -36,9 +65,11 @@ export class AuthGuard implements CanActivate {
       });
       request.user = payload;
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthGuard.canActivate',
+      });
     }
-
     return true;
   }
   private extractTokenFromHeader(request: Request): string | undefined {

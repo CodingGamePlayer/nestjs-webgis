@@ -7,8 +7,6 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 
-console.log(process.env.REDIS_HOST);
-
 @Module({
   imports: [
     ConfigModule.forRoot({

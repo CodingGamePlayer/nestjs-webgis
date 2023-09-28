@@ -18,12 +18,21 @@ Content-Type: application/json
   "password": "Securepassword1"
 }
 
-### Get Profile
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lMUBleGFtcGxlLmNvbSIsInN1YiI6IjY1MTNhZTAyMTRkY2E5MjQxZTZhMTYyOSIsImlhdCI6MTY5NTc5MjEyNCwiZXhwIjoxNjk1ODc4NTI0fQ.cXiazBCwh0kOfb1CmCgPmsPyT9O9KIzFILKRKBZ8J8o
+### Logout
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lMTJAZXhhbXBsZS5jb20iLCJzdWIiOiI2NTE0MjU3Yjc4YjZhODk3NWRjOTA5NjciLCJpYXQiOjE2OTU4MzU0MzMsImV4cCI6MTY5NTkyMTgzM30.y7XKUNxwpr2fOlw_4aShpyqp7PbCm3XCr-1DYK8ZI_k
+@refresh_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aW1lIjoiMjAyMy0wOS0yN1QxNzoyMzo1My43MTBaIiwiaWF0IjoxNjk1ODM1NDMzLCJleHAiOjE2OTY0NDAyMzN9.JYfru5jhaTaZb2We-2WUKo1ndvObdFazlMD72uVn1f0
 
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{token}}
+RefreshToken: {{refresh_token}}
+
+
+### Get Profile
 GET http://localhost:3000/auth/profile
 Content-Type: application/json
 Authorization: Bearer {{token}}
+RefreshToken: {{refresh_token}}
 
 ### Get All Users
 GET http://localhost:3000/user/users?page=1&size=10
