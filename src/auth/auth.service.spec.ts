@@ -11,6 +11,10 @@ import { User, UserSchema } from 'src/schema/user/user';
 import { CacheModule } from '@nestjs/cache-manager';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-store';
+import { UserModule } from 'src/user/user.module';
 
 dotenv.config();
 
@@ -19,19 +23,24 @@ describe('AuthService', () => {
   let userRepository: UserRepository;
   let mongod: MongoMemoryServer;
   let mongoConnection: Connection;
-  let articleModel: Model<User>;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const uri = mongod.getUri();
     mongoConnection = (await connect(uri)).connection;
-    articleModel = mongoConnection.model(User.name, UserSchema);
 
     const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, AuthModule],
-      providers: [
-        { provide: getModelToken(User.name), useValue: articleModel },
+      imports: [
+        JwtModule.register({
+          global: true,
+          secret: 'testScretKey',
+          signOptions: { expiresIn: '1d' },
+        }),
+        CacheModule.register(),
+        MongooseModule.forRoot(uri),
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
+      providers: [AuthService, UserRepository],
     }).compile();
 
     service = module.get<AuthService>(AuthService);

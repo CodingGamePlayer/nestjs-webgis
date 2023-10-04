@@ -47,6 +47,6 @@ dotenv.config();
       useClass: RolesGuard,
     },
   ],
-  exports: [CacheModule, JwtModule, MongooseModule],
+  exports: [AuthService],
 })
 export class AuthModule {}
