@@ -9,16 +9,15 @@ import { SignInResDto } from './dto/res.dto';
 import { ExceptionMassage } from 'src/enums/exception';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User, UserDocument } from 'src/schema/user/user';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { User } from 'src/schema/user/user';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { UserRepository } from 'src/user/user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userRepository: Model<UserDocument>,
+    private userRepository: UserRepository,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private jwtService: JwtService,
   ) {}
@@ -155,8 +154,8 @@ export class AuthService {
       ...signUpReqDto,
       password: hashedPassword,
     };
-
-    return this.userRepository.create(createdUser);
+    return null;
+    // return this.userRepository.create(createdUser);
   }
 
   /**
@@ -165,7 +164,7 @@ export class AuthService {
    * @returns A promise that resolves when the validation is done.
    */
   async validateNewUser(signUpReqDto: SignUpReqDto): Promise<void> {
-    const user = await this.findOneByEmail(signUpReqDto.email);
+    const user = await this.userRepository.findOneByEmail(signUpReqDto.email);
 
     if (user) {
       throw new BadRequestException({
@@ -188,7 +187,8 @@ export class AuthService {
    * @returns A promise that resolves to the User object.
    */
   async findOneByEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({ email: email });
+    return null;
+    // return await this.userRepository.findOne({ email: email });
   }
 
   /**
@@ -212,5 +212,10 @@ export class AuthService {
   async decodeAccessToken(accessToken: string) {
     const payload = await this.jwtService.decode(accessToken);
     return payload;
+  }
+
+  async delete(email: string) {
+    return null;
+    // const result = await this.userRepository.deleteOne({ email: email });
   }
 }
