@@ -3,18 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import * as dotenv from 'dotenv';
 import { UserRepository } from 'src/user/user.repository';
-import { AuthModule } from './auth.module';
-import { AppModule } from 'src/app.module';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { Connection, Model, connect } from 'mongoose';
+import { Connection, connect } from 'mongoose';
 import { User, UserSchema } from 'src/schema/user/user';
 import { CacheModule } from '@nestjs/cache-manager';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
-import { RedisClientOptions } from 'redis';
-import { redisStore } from 'cache-manager-redis-store';
-import { UserModule } from 'src/user/user.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 dotenv.config();
 
@@ -54,11 +50,8 @@ describe('AuthService', () => {
   });
 
   afterEach(async () => {
-    const collections = mongoConnection.collections;
-    for (const key in collections) {
-      const collection = collections[key];
-      await collection.deleteMany({});
-    }
+    await userRepository.deleteAll();
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -90,25 +83,55 @@ describe('AuthService', () => {
       it('should throw an 400 error when password is not matched', async () => {
         signUpReqDto.passwordConfirmation = 'Password1234@';
 
-        try {
-          await service.validateNewUser(signUpReqDto);
-        } catch (error) {
-          expect(error.status).toBe(400);
-        }
+        expect(service.validateNewUser(signUpReqDto)).rejects.toThrow(
+          BadRequestException,
+        );
       });
 
       it('should throw an 400 error when user already exists', async () => {
         await userRepository.create(signUpReqDto);
 
-        try {
-          await service.validateNewUser(signUpReqDto);
-        } catch (error) {
-          console.log(error);
+        expect(service.validateNewUser(signUpReqDto)).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+    });
 
-          expect(error.status).toBe(400);
-        }
+    describe('hashPassword method test', () => {
+      it('should return hashed password', async () => {
+        const password = 'Password1234!';
+        const hashedPassword = await service.hashPassword(password);
 
-        await userRepository.deleteByEmail(signUpReqDto.email);
+        expect(hashedPassword).not.toEqual(password);
+      });
+
+      it('should throw an error when bcrypt hash failed', async () => {
+        jest.spyOn(bcrypt, 'hash').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        const password = 'Password1234!';
+
+        expect(service.hashPassword(password)).rejects.toThrow();
+      });
+    });
+
+    describe('create method test', () => {
+      const signUpReqDto = new SignUpReqDto();
+
+      beforeEach(() => {
+        signUpReqDto.name = 'test';
+        signUpReqDto.email = 'test@test.com';
+        signUpReqDto.password = 'Password1234!';
+        signUpReqDto.passwordConfirmation = 'Password1234!';
+      });
+
+      it('should return created user', async () => {
+        const result = await service.create(signUpReqDto);
+
+        expect(result).toBeDefined();
+        expect(result.name).toEqual(signUpReqDto.name);
+        expect(result.email).toEqual(signUpReqDto.email);
       });
     });
   });

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Inject,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { SignInReqDto, SignUpReqDto } from 'src/auth/dto/req.dto';
 import { SignInResDto } from './dto/res.dto';
@@ -154,8 +155,8 @@ export class AuthService {
       ...signUpReqDto,
       password: hashedPassword,
     };
-    return null;
-    // return this.userRepository.create(createdUser);
+
+    return this.userRepository.create(createdUser);
   }
 
   /**
@@ -197,8 +198,15 @@ export class AuthService {
    * @returns A promise that resolves to the hashed password.
    */
   async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return await bcrypt.hash(password, salt);
+    try {
+      const salt = await bcrypt.genSalt(10);
+      return await bcrypt.hash(password, salt);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+        at: 'AuthService.hashPassword',
+      });
+    }
   }
 
   async isAccessTokenInBlackList(token: string) {

@@ -7,4 +7,6 @@ export enum ExceptionMassage {
   REFRESH_TOKEN_ALREADY_EXISTS = 'Refresh token already exists in the database.',
   INVALID_ACCESS_TOKEN = 'Invalid access token provided',
   INVALID_REFRESH_TOKEN = 'Invalid refresh token provided',
+
+  INTERNAL_SERVER_ERROR = 'Internal server error',
 }
