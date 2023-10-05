@@ -42,7 +42,7 @@ export class AuthService {
     return new SignInResDto(accessToken, refreshToken);
   }
 
-  async logout(accessToken: string, refreshToken: string): Promise<void> {
+  async signOut(accessToken: string, refreshToken: string): Promise<void> {
     if (!accessToken) {
       throw new UnauthorizedException({
         message: ExceptionMassage.INVALID_ACCESS_TOKEN,
@@ -119,16 +119,16 @@ export class AuthService {
    */
   async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
     try {
-      const savedToken: string = await this.cacheManager.get(email);
+      const savedToken = await this.cacheManager.get(email);
 
-      if (savedToken === refreshToken) {
+      if (savedToken) {
         throw new BadRequestException({
           message: ExceptionMassage.REFRESH_TOKEN_ALREADY_EXISTS,
           at: 'AuthService.saveRefreshToken',
         });
       }
 
-      await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
+      await this.cacheManager.set(refreshToken, email, 60 * 60 * 24 * 7);
     } catch (error) {
       if (!error.status) {
         throw new InternalServerErrorException({

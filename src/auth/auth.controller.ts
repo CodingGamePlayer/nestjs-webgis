@@ -45,6 +45,6 @@ export class AuthController {
     const authorization = req.headers['authorization'];
     const accessToken = authorization.split(' ')[1];
     const refreshToken = req.headers['refreshtoken'];
-    return this.authService.logout(accessToken, refreshToken);
+    return this.authService.signOut(accessToken, refreshToken);
   }
 }
