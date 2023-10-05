@@ -71,13 +71,21 @@ export class AuthService {
    * Create an access token for the given user.
    * @param user - The user for whom to create an access token.
    * @returns A promise that resolves to an object containing the access token.
+   * @throws {InternalServerErrorException} If an internal server error occurs.
    */
   async createAccessToken(user: User): Promise<{ access_token: string }> {
-    const payload = { email: user.email, sub: user['_id'] };
+    try {
+      const payload = { email: user.email, sub: user['_id'] };
 
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+      return {
+        access_token: this.jwtService.sign(payload),
+      };
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+        at: 'AuthService.createAccessToken',
+      });
+    }
   }
 
   /**

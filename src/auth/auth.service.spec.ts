@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import { UserRepository } from 'src/user/user.repository';
 import { User, UserSchema } from 'src/schema/user/user';
 import { CacheModule } from '@nestjs/cache-manager';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +16,7 @@ dotenv.config();
 describe('AuthService', () => {
   let service: AuthService;
   let userRepository: UserRepository;
+  let jwtService: JwtService;
 
   beforeAll(async () => {
     await MongodbHelper.start();
@@ -35,6 +36,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
+    jwtService = module.get<JwtService>(JwtService);
     userRepository = module.get<UserRepository>(UserRepository);
   });
 
@@ -56,6 +58,7 @@ describe('AuthService', () => {
     it('should be defined', () => {
       expect(service.create).toBeDefined();
       expect(service.validateNewUser).toBeDefined();
+      expect(service.hashPassword).toBeDefined();
     });
 
     describe('validateNewUser', () => {
@@ -145,11 +148,13 @@ describe('AuthService', () => {
       signUpReqDto.passwordConfirmation = user.password;
     });
 
+    it('should be defined', () => {
+      expect(service.validateUser).toBeDefined();
+    });
+
     describe('validate method test', () => {
       it('should return user when password is matched', async () => {
         const signupResult = await service.create(signUpReqDto);
-
-        console.log({ signupResult });
 
         const result = await service.validateUser(user.email, user.password);
 
@@ -182,6 +187,22 @@ describe('AuthService', () => {
         expect(
           service.validateUser(user.email, 'Password1234@'),
         ).rejects.toThrow();
+      });
+    });
+
+    describe('createAccessToken method test', () => {
+      it('should return access token', async () => {
+        const result = await service.createAccessToken(user);
+
+        expect(result).toBeDefined();
+      });
+
+      it('should throw an error when jwt sign failed', async () => {
+        jest.spyOn(jwtService, 'sign').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        expect(service.createAccessToken(user)).rejects.toThrow();
       });
     });
   });
