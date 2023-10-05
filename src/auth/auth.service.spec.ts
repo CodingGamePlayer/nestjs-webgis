@@ -49,6 +49,7 @@ describe('AuthService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(userRepository).toBeDefined();
   });
 
   describe('Sign Up Logic Test', () => {
@@ -125,6 +126,62 @@ describe('AuthService', () => {
         expect(result).toBeDefined();
         expect(result.name).toEqual(signUpReqDto.name);
         expect(result.email).toEqual(signUpReqDto.email);
+      });
+    });
+  });
+
+  describe('Sign In Logic Test', () => {
+    const user = new User();
+    const signUpReqDto = new SignUpReqDto();
+
+    beforeEach(() => {
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'Password1234!';
+
+      signUpReqDto.name = user.name;
+      signUpReqDto.email = user.email;
+      signUpReqDto.password = user.password;
+      signUpReqDto.passwordConfirmation = user.password;
+    });
+
+    describe('validate method test', () => {
+      it('should return user when password is matched', async () => {
+        const signupResult = await service.create(signUpReqDto);
+
+        console.log({ signupResult });
+
+        const result = await service.validateUser(user.email, user.password);
+
+        expect(result).toBeDefined();
+        expect(result.name).toEqual(user.name);
+        expect(result.email).toEqual(user.email);
+      });
+
+      it('should throw an error when user is not found', async () => {
+        expect(service.validateUser(user.email, user.password)).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should throw an error when password is not matched', async () => {
+        await service.create(signUpReqDto);
+
+        expect(
+          service.validateUser(user.email, 'Password1234@'),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should throw an error when bcrypt compare failed', async () => {
+        jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        await service.create(signUpReqDto);
+
+        expect(
+          service.validateUser(user.email, 'Password1234@'),
+        ).rejects.toThrow();
       });
     });
   });

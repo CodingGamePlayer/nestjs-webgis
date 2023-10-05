@@ -13,7 +13,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-store';
 import { ConfigModule } from '@nestjs/config';
-import { UserRepository } from 'src/user/user.repository';
 
 dotenv.config();
 

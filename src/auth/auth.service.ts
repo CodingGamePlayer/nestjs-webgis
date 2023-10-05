@@ -119,26 +119,37 @@ export class AuthService {
    * @param pass - The password to validate.
    * @returns A promise that resolves to the validated User object.
    * @throws {BadRequestException} If the user is not found or password does not match.
+   * @throws {InternalServerErrorException} If an internal server error occurs.
    */
   async validateUser(email: string, pass: string): Promise<User> {
-    const user = await this.findOneByEmail(email);
-    if (!user) {
-      throw new BadRequestException({
-        message: ExceptionMassage.USER_NOT_FOUND,
-        at: 'AuthService.validateUser',
-      });
+    try {
+      const user = await this.userRepository.findOneByEmail(email);
+      if (!user) {
+        throw new BadRequestException({
+          message: ExceptionMassage.USER_NOT_FOUND,
+          at: 'AuthService.validateUser',
+        });
+      }
+
+      const isMatch = await bcrypt.compare(pass, user.password);
+
+      if (!isMatch) {
+        throw new BadRequestException({
+          message: ExceptionMassage.PASSWORD_NOT_MATCH,
+          at: 'AuthService.validateUser',
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (!error.status) {
+        throw new InternalServerErrorException({
+          message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+          at: 'AuthService.validateUser',
+        });
+      }
+      throw error;
     }
-
-    const isMatch = await bcrypt.compare(pass, user.password);
-
-    if (!isMatch) {
-      throw new BadRequestException({
-        message: ExceptionMassage.PASSWORD_NOT_MATCH,
-        at: 'AuthService.validateUser',
-      });
-    }
-
-    return user;
   }
 
   /**
@@ -196,6 +207,7 @@ export class AuthService {
    * Hash the given password.
    * @param password - The password to hash.
    * @returns A promise that resolves to the hashed password.
+   * @throws {InternalServerErrorException} If an internal server error occurs.
    */
   async hashPassword(password: string): Promise<string> {
     try {
