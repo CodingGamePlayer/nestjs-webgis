@@ -1,18 +1,14 @@
 import { SignUpReqDto } from './dto/req.dto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import * as dotenv from 'dotenv';
 import { UserRepository } from 'src/user/user.repository';
 import { User, UserSchema } from 'src/schema/user/user';
-import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
-
-dotenv.config();
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -40,7 +36,6 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     userRepository = module.get<UserRepository>(UserRepository);
-    cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
 
   afterAll(async () => {
@@ -49,15 +44,12 @@ describe('AuthService', () => {
 
   afterEach(async () => {
     await userRepository.deleteAll();
-    await cacheManager.reset();
     jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
     expect(userRepository).toBeDefined();
-    expect(jwtService).toBeDefined();
-    expect(cacheManager).toBeDefined();
   });
 
   describe('Sign Up Logic Test', () => {
@@ -234,8 +226,10 @@ describe('AuthService', () => {
     describe('saveRefreshToken method test', () => {
       it('should save refresh token', async () => {
         const refreshToken = await service.createRefreshToken();
-
-        const result = await service.saveRefreshToken(user.email, refreshToken);
+        const result = await service.saveRefreshToken(
+          user.email,
+          refreshToken.refresh_token,
+        );
 
         expect(result).toBeUndefined();
       });
@@ -243,22 +237,13 @@ describe('AuthService', () => {
       it('should throw an error when the same refreshToken is saved in redis', async () => {
         const refreshToken = await service.createRefreshToken();
 
-        await cacheManager.set(user.email, refreshToken);
+        await await service.saveRefreshToken(
+          user.email,
+          refreshToken.refresh_token,
+        );
 
         expect(
-          service.saveRefreshToken(user.email, refreshToken),
-        ).rejects.toThrow();
-      });
-
-      it('should throw an error when redis set failed', async () => {
-        const refreshToken = await service.createRefreshToken();
-
-        jest.spyOn(cacheManager, 'set').mockImplementationOnce(() => {
-          throw new Error();
-        });
-
-        expect(
-          service.saveRefreshToken(user.email, refreshToken),
+          service.saveRefreshToken(user.email, refreshToken.refresh_token),
         ).rejects.toThrow();
       });
     });

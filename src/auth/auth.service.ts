@@ -35,11 +35,11 @@ export class AuthService {
     );
 
     const { access_token } = await this.createAccessToken(validUser);
-    const { refresh_token } = await this.createRefreshToken();
+    const refreshToken = await this.createRefreshToken();
 
-    await this.saveRefreshToken(validUser.email, refresh_token);
+    await this.saveRefreshToken(validUser.email, refreshToken);
 
-    return new SignInResDto(access_token, refresh_token);
+    return new SignInResDto(access_token, refreshToken);
   }
 
   async logout(accessToken: string, refreshToken: string): Promise<void> {
@@ -93,16 +93,16 @@ export class AuthService {
    * @returns - A promise that resolves to an object containing the refresh token.
    * @throws {InternalServerErrorException} If an internal server error occurs.
    */
-  async createRefreshToken(): Promise<{ refresh_token: string }> {
+  async createRefreshToken(): Promise<string> {
     try {
       const time = new Date().toISOString();
       const payload = { time };
 
-      return {
-        refresh_token: this.jwtService.sign(payload, {
-          expiresIn: '7d',
-        }),
-      };
+      const refreshToken = this.jwtService.sign(payload, {
+        expiresIn: '7d',
+      });
+
+      return refreshToken;
     } catch (error) {
       throw new InternalServerErrorException({
         message: ExceptionMassage.INTERNAL_SERVER_ERROR,
@@ -115,18 +115,31 @@ export class AuthService {
    * Save a refresh token to the cache.
    * @param email - The email of the user to whom the refresh token belongs.
    * @param refreshToken - The refresh token to save.
+   * @returns A promise that resolves when the refresh token is saved.
+   * @throws {BadRequestException} If a refresh token already exists for the given email.
+   * @throws {InternalServerErrorException} If an internal server error occurs.
    */
   async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
-    const savedToken: string = await this.cacheManager.get(email);
+    try {
+      const savedToken: string = await this.cacheManager.get(email);
 
-    if (savedToken) {
-      throw new BadRequestException({
-        message: ExceptionMassage.REFRESH_TOKEN_ALREADY_EXISTS,
-        at: 'AuthService.saveRefreshToken',
-      });
+      if (savedToken === refreshToken) {
+        throw new BadRequestException({
+          message: ExceptionMassage.REFRESH_TOKEN_ALREADY_EXISTS,
+          at: 'AuthService.saveRefreshToken',
+        });
+      }
+
+      await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
+    } catch (error) {
+      if (!error.status) {
+        throw new InternalServerErrorException({
+          message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+          at: 'AuthService.saveRefreshToken',
+        });
+      }
+      throw error;
     }
-
-    await this.cacheManager.set(email, refreshToken, 60 * 60 * 24 * 7);
   }
 
   /**
