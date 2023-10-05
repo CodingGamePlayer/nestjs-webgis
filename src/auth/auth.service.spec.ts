@@ -9,9 +9,10 @@ import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
+import { async } from 'rxjs';
 
 dotenv.config();
 
@@ -63,7 +64,7 @@ describe('AuthService', () => {
 
   describe('Sign Up Logic Test', () => {
     it('should be defined', () => {
-      expect(service.create).toBeDefined();
+      expect(service.signUp).toBeDefined();
       expect(service.validateNewUser).toBeDefined();
       expect(service.hashPassword).toBeDefined();
     });
@@ -131,7 +132,7 @@ describe('AuthService', () => {
       });
 
       it('should return created user', async () => {
-        const result = await service.create(signUpReqDto);
+        const result = await service.signUp(signUpReqDto);
 
         expect(result).toBeDefined();
         expect(result.name).toEqual(signUpReqDto.name);
@@ -164,7 +165,7 @@ describe('AuthService', () => {
 
     describe('validate method test', () => {
       it('should return user when password is matched', async () => {
-        const signupResult = await service.create(signUpReqDto);
+        const signupResult = await service.signUp(signUpReqDto);
 
         const result = await service.validateUser(user.email, user.password);
 
@@ -180,7 +181,7 @@ describe('AuthService', () => {
       });
 
       it('should throw an error when password is not matched', async () => {
-        await service.create(signUpReqDto);
+        await service.signUp(signUpReqDto);
 
         expect(
           service.validateUser(user.email, 'Password1234@'),
@@ -192,7 +193,7 @@ describe('AuthService', () => {
           throw new Error();
         });
 
-        await service.create(signUpReqDto);
+        await service.signUp(signUpReqDto);
 
         expect(
           service.validateUser(user.email, 'Password1234@'),
@@ -244,7 +245,7 @@ describe('AuthService', () => {
       it('should throw an error when the same refreshToken is saved in redis', async () => {
         const refreshToken = await service.createRefreshToken();
 
-        await cacheManager.set(user.email, refreshToken);
+        await cacheManager.set(refreshToken, user.email);
 
         expect(
           service.saveRefreshToken(user.email, refreshToken),
@@ -279,13 +280,123 @@ describe('AuthService', () => {
       });
 
       it('should return access token and refresh token', async () => {
-        await service.create(signUpReqDto);
+        await service.signUp(signUpReqDto);
 
-        const result = await service.signIn(signInReqDto);
+        const validUser = await service.validateUser(
+          signInReqDto.email,
+          signInReqDto.password,
+        );
+
+        const result = await service.signIn(validUser);
 
         expect(result).toBeDefined();
         expect(result.accessToken).toBeDefined();
         expect(result.refreshToken).toBeDefined();
+      });
+    });
+  });
+
+  describe('Sign Out Logic Test', () => {
+    let user = new User();
+    let accessToken;
+    let refreshToken;
+
+    beforeAll(async () => {
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'Password1234!';
+
+      accessToken = await service.createAccessToken(user);
+      refreshToken = await service.createRefreshToken();
+    });
+
+    it('should be defined', () => {
+      expect(service.signOut).toBeDefined();
+      expect(service.saveAccessTokenInBlackList).toBeDefined();
+      expect(service.removeRefreshToken).toBeDefined();
+    });
+
+    describe('saveAccessTokenInBlackList method test', () => {
+      it('should save access token in redis', async () => {
+        const result = await service.saveAccessTokenInBlackList(accessToken);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should throw an error when redis set failed', async () => {
+        jest.spyOn(cacheManager, 'set').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        expect(
+          service.saveAccessTokenInBlackList(accessToken),
+        ).rejects.toThrow();
+      });
+    });
+
+    describe('removeRefreshToken method test', () => {
+      it('should remove refresh token in redis', async () => {
+        const result = await service.removeRefreshToken(refreshToken);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should throw an error when redis del failed', async () => {
+        jest.spyOn(cacheManager, 'del').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        expect(service.removeRefreshToken(refreshToken)).rejects.toThrow();
+      });
+    });
+
+    describe('validateAccessToken method test', () => {
+      it('should throw an error when access token is not provided', async () => {
+        expect(service.validateAccessToken(null)).rejects.toThrow(
+          UnauthorizedException,
+        );
+      });
+    });
+
+    describe('validateRefreshToken method test', () => {
+      it('should throw an error when refresh token is not provided', async () => {
+        expect(service.validateRefreshToken(null)).rejects.toThrow(
+          UnauthorizedException,
+        );
+      });
+    });
+
+    describe('signOut method test', () => {
+      it('should sign out', async () => {
+        await service.signOut(accessToken, refreshToken);
+
+        const isAccessTokenInBlackList = await service.isAccessTokenInBlackList(
+          accessToken,
+        );
+
+        expect(isAccessTokenInBlackList).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Delete User Logic Test', () => {
+    it('should be defined', () => {
+      expect(service.deleteUser).toBeDefined();
+    });
+
+    describe('deleteUser method test', () => {
+      const user = new User();
+
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'Password1234!';
+
+      it('should delete user', async () => {
+        await userRepository.create(user);
+
+        const deletedUser = await service.deleteUser(user.email);
+
+        expect(deletedUser).toBeDefined();
       });
     });
   });

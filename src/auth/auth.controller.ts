@@ -14,6 +14,7 @@ import { SignInResDto } from './dto/res.dto';
 import { Public } from 'src/decorators/public-api.decoratpr';
 import { User } from 'src/schema/user/user';
 import { RolesGuard } from './roles.guard';
+import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
 
 @UseGuards(RolesGuard)
 @Controller('auth')
@@ -23,28 +24,50 @@ export class AuthController {
   @Post('login')
   @Public()
   @HttpCode(HttpStatus.OK)
-  sign(@Body() signInReqDto: SignInReqDto): Promise<SignInResDto> {
-    return this.authService.signIn(signInReqDto);
-  }
+  async signIn(@Body() signInReqDto: SignInReqDto): Promise<SignInResDto> {
+    const validUser = await this.authService.validateUser(
+      signInReqDto.email,
+      signInReqDto.password,
+    );
 
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
+    return this.authService.signIn(validUser);
   }
 
   @Post('signup')
   @Public()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
-    return this.authService.create(signUpReqDto);
+  async signUp(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
+    await this.authService.validateNewUser(signUpReqDto);
+
+    return this.authService.signUp(signUpReqDto);
   }
 
-  @Post('logout')
+  @Post('signout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Request() req: Request) {
+  async signOut(@Request() req: Request) {
     const authorization = req.headers['authorization'];
     const accessToken = authorization.split(' ')[1];
     const refreshToken = req.headers['refreshtoken'];
+
+    await Promise.all([
+      this.authService.validateAccessToken(accessToken),
+      this.authService.validateRefreshToken(refreshToken),
+    ]);
+
     return this.authService.signOut(accessToken, refreshToken);
+  }
+
+  @Post('delete')
+  @HttpCode(HttpStatus.OK)
+  async delete(@GetAccessToken() accessToken: string) {
+    await this.authService.validateAccessToken(accessToken);
+
+    const paylod = this.authService.decodeAccessToken(accessToken);
+    return await this.authService.deleteUser(paylod.email);
+  }
+
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user;
   }
 }

@@ -40,7 +40,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    const payload = await this.authService.decodeAccessToken(token);
+    const payload = this.authService.decodeAccessToken(token);
 
     if (!refreshToken) {
       throw new UnauthorizedException({
@@ -60,9 +60,6 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
-      });
       request.user = payload;
     } catch (error) {
       throw new UnauthorizedException({

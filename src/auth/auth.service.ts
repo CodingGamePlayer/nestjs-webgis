@@ -14,6 +14,7 @@ import { User } from 'src/schema/user/user';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserRepository } from 'src/user/user.repository';
+import { DecodedToken } from './interface/decoded-token.interface';
 
 @Injectable()
 export class AuthService {
@@ -24,16 +25,27 @@ export class AuthService {
   ) {}
 
   /**
+   * Create a new user.
+   * @param signUpReqDto - The user information.
+   * @returns A promise that resolves to the created User object.
+   */
+  async signUp(signUpReqDto: SignUpReqDto): Promise<User> {
+    const hashedPassword = await this.hashPassword(signUpReqDto.password);
+
+    const createdUser = {
+      ...signUpReqDto,
+      password: hashedPassword,
+    };
+
+    return this.userRepository.create(createdUser);
+  }
+
+  /**
    * Authenticate a user and return an access token.
    * @param signInReqDto - The user's sign-in credentials.
    * @returns A promise that resolves to an access token.
    */
-  async signIn(signInReqDto: SignInReqDto): Promise<SignInResDto> {
-    const validUser = await this.validateUser(
-      signInReqDto.email,
-      signInReqDto.password,
-    );
-
+  async signIn(validUser: User): Promise<SignInResDto> {
     const accessToken = await this.createAccessToken(validUser);
     const refreshToken = await this.createRefreshToken();
 
@@ -42,29 +54,63 @@ export class AuthService {
     return new SignInResDto(accessToken, refreshToken);
   }
 
+  /**
+   *  Sign out a user.
+   * @param accessToken - The access token to sign out.
+   * @param refreshToken - The refresh token to sign out.
+   */
   async signOut(accessToken: string, refreshToken: string): Promise<void> {
-    if (!accessToken) {
-      throw new UnauthorizedException({
-        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
-        at: 'AuthService.logout',
-      });
-    } else if (!refreshToken) {
-      throw new UnauthorizedException({
-        message: ExceptionMassage.INVALID_REFRESH_TOKEN,
-        at: 'AuthService.logout',
-      });
-    }
-
     await this.saveAccessTokenInBlackList(accessToken);
     await this.removeRefreshToken(refreshToken);
   }
 
+  /**
+   * Delete a user.
+   * @param email - The email of the user to delete.
+   * @returns - A promise that resolves to the deleted User object.
+   */
+  async deleteUser(email: string): Promise<User> {
+    return await this.userRepository.deleteByEmail(email);
+  }
+
+  async validateAccessToken(accessToken: string): Promise<void> {
+    if (!accessToken) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthService.validateAccessToken',
+      });
+    }
+  }
+
+  async validateRefreshToken(refreshToken: string): Promise<void> {
+    if (!refreshToken) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_REFRESH_TOKEN,
+        at: 'AuthService.validateRefreshToken',
+      });
+    }
+  }
+
   async saveAccessTokenInBlackList(accessToken: string): Promise<void> {
-    await this.cacheManager.set(accessToken, accessToken, 60 * 60 * 24);
+    try {
+      await this.cacheManager.set(accessToken, accessToken, 60 * 60 * 24);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+        at: 'AuthService.saveAccessTokenInBlackList',
+      });
+    }
   }
 
   async removeRefreshToken(refreshToken: string): Promise<void> {
-    await this.cacheManager.del(refreshToken);
+    try {
+      await this.cacheManager.del(refreshToken);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+        at: 'AuthService.removeRefreshToken',
+      });
+    }
   }
 
   /**
@@ -119,7 +165,7 @@ export class AuthService {
    */
   async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
     try {
-      const savedToken = await this.cacheManager.get(email);
+      const savedToken = await this.cacheManager.get(refreshToken);
 
       if (savedToken) {
         throw new BadRequestException({
@@ -180,24 +226,6 @@ export class AuthService {
   }
 
   /**
-   * Create a new user.
-   * @param signUpReqDto - The user information.
-   * @returns A promise that resolves to the created User object.
-   */
-  async create(signUpReqDto: SignUpReqDto): Promise<User> {
-    await this.validateNewUser(signUpReqDto);
-
-    const hashedPassword = await this.hashPassword(signUpReqDto.password);
-
-    const createdUser = {
-      ...signUpReqDto,
-      password: hashedPassword,
-    };
-
-    return this.userRepository.create(createdUser);
-  }
-
-  /**
    * Validate new user's information.
    * @param signUpReqDto - The user information.
    * @returns A promise that resolves when the validation is done.
@@ -218,16 +246,6 @@ export class AuthService {
         at: 'UserService.validateNewUser',
       });
     }
-  }
-
-  /**
-   * Find one user by email.
-   * @param email - The email to search for.
-   * @returns A promise that resolves to the User object.
-   */
-  async findOneByEmail(email: string): Promise<User> {
-    return null;
-    // return await this.userRepository.findOne({ email: email });
   }
 
   /**
@@ -256,13 +274,8 @@ export class AuthService {
     }
   }
 
-  async decodeAccessToken(accessToken: string) {
-    const payload = await this.jwtService.decode(accessToken);
-    return payload;
-  }
-
-  async delete(email: string) {
-    return null;
-    // const result = await this.userRepository.deleteOne({ email: email });
+  decodeAccessToken(accessToken: string): DecodedToken {
+    const payload = this.jwtService.decode(accessToken);
+    return payload as DecodedToken;
   }
 }
