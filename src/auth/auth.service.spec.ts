@@ -150,6 +150,8 @@ describe('AuthService', () => {
 
     it('should be defined', () => {
       expect(service.validateUser).toBeDefined();
+      expect(service.createAccessToken).toBeDefined();
+      expect(service.createRefreshToken).toBeDefined();
     });
 
     describe('validate method test', () => {
@@ -203,6 +205,22 @@ describe('AuthService', () => {
         });
 
         expect(service.createAccessToken(user)).rejects.toThrow();
+      });
+    });
+
+    describe('createRefreshToken method test', () => {
+      it('should return refresh token', async () => {
+        const result = await service.createRefreshToken();
+
+        expect(result).toBeDefined();
+      });
+
+      it('should throw an error when jwt sign failed', async () => {
+        jest.spyOn(jwtService, 'sign').mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        expect(service.createRefreshToken()).rejects.toThrow();
       });
     });
   });

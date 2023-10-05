@@ -91,16 +91,24 @@ export class AuthService {
   /**
    * Create a refresh token.
    * @returns - A promise that resolves to an object containing the refresh token.
+   * @throws {InternalServerErrorException} If an internal server error occurs.
    */
   async createRefreshToken(): Promise<{ refresh_token: string }> {
-    const time = new Date().toISOString();
-    const payload = { time };
+    try {
+      const time = new Date().toISOString();
+      const payload = { time };
 
-    return {
-      refresh_token: this.jwtService.sign(payload, {
-        expiresIn: '7d',
-      }),
-    };
+      return {
+        refresh_token: this.jwtService.sign(payload, {
+          expiresIn: '7d',
+        }),
+      };
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: ExceptionMassage.INTERNAL_SERVER_ERROR,
+        at: 'AuthService.createRefreshToken',
+      });
+    }
   }
 
   /**
