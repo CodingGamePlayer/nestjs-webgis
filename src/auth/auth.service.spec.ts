@@ -1,3 +1,4 @@
+import { SignInReqDto } from 'src/auth/dto/req.dto';
 import { SignUpReqDto } from './dto/req.dto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
@@ -260,6 +261,31 @@ describe('AuthService', () => {
         expect(
           service.saveRefreshToken(user.email, refreshToken),
         ).rejects.toThrow();
+      });
+    });
+
+    describe('signIn method test', () => {
+      const signInReqDto = new SignInReqDto();
+      const signUpReqDto = new SignUpReqDto();
+
+      beforeEach(() => {
+        signInReqDto.email = user.email;
+        signInReqDto.password = user.password;
+
+        signUpReqDto.name = user.name;
+        signUpReqDto.email = user.email;
+        signUpReqDto.password = user.password;
+        signUpReqDto.passwordConfirmation = user.password;
+      });
+
+      it('should return access token and refresh token', async () => {
+        await service.create(signUpReqDto);
+
+        const result = await service.signIn(signInReqDto);
+
+        expect(result).toBeDefined();
+        expect(result.accessToken).toBeDefined();
+        expect(result.refreshToken).toBeDefined();
       });
     });
   });

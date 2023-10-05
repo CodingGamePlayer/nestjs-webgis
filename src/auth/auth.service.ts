@@ -34,12 +34,12 @@ export class AuthService {
       signInReqDto.password,
     );
 
-    const { access_token } = await this.createAccessToken(validUser);
+    const accessToken = await this.createAccessToken(validUser);
     const refreshToken = await this.createRefreshToken();
 
     await this.saveRefreshToken(validUser.email, refreshToken);
 
-    return new SignInResDto(access_token, refreshToken);
+    return new SignInResDto(accessToken, refreshToken);
   }
 
   async logout(accessToken: string, refreshToken: string): Promise<void> {
@@ -73,13 +73,11 @@ export class AuthService {
    * @returns A promise that resolves to an object containing the access token.
    * @throws {InternalServerErrorException} If an internal server error occurs.
    */
-  async createAccessToken(user: User): Promise<{ access_token: string }> {
+  async createAccessToken(user: User): Promise<string> {
     try {
       const payload = { email: user.email, sub: user['_id'] };
 
-      return {
-        access_token: this.jwtService.sign(payload),
-      };
+      return this.jwtService.sign(payload);
     } catch (error) {
       throw new InternalServerErrorException({
         message: ExceptionMassage.INTERNAL_SERVER_ERROR,
