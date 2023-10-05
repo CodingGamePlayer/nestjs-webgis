@@ -3,27 +3,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import * as dotenv from 'dotenv';
 import { UserRepository } from 'src/user/user.repository';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { Connection, connect } from 'mongoose';
 import { User, UserSchema } from 'src/schema/user/user';
 import { CacheModule } from '@nestjs/cache-manager';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { MongodbHelper } from 'src/helper/mongodbHelper';
 
 dotenv.config();
 
 describe('AuthService', () => {
   let service: AuthService;
   let userRepository: UserRepository;
-  let mongod: MongoMemoryServer;
-  let mongoConnection: Connection;
 
   beforeAll(async () => {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
-    mongoConnection = (await connect(uri)).connection;
+    await MongodbHelper.start();
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -33,7 +28,7 @@ describe('AuthService', () => {
           signOptions: { expiresIn: '1d' },
         }),
         CacheModule.register(),
-        MongooseModule.forRoot(uri),
+        MongooseModule.forRoot(MongodbHelper.getUri()),
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
       providers: [AuthService, UserRepository],
@@ -44,9 +39,7 @@ describe('AuthService', () => {
   });
 
   afterAll(async () => {
-    await mongoConnection.dropDatabase();
-    await mongoConnection.close();
-    await mongod.stop();
+    await MongodbHelper.stop();
   });
 
   afterEach(async () => {
