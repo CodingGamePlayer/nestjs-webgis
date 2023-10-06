@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Headers,
   Post,
   Request,
   UseGuards,
@@ -21,7 +22,7 @@ import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
+  @Post('signin')
   @Public()
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() signInReqDto: SignInReqDto): Promise<SignInResDto> {
@@ -44,11 +45,10 @@ export class AuthController {
 
   @Post('signout')
   @HttpCode(HttpStatus.OK)
-  async signOut(@Request() req: Request) {
-    const authorization = req.headers['authorization'];
-    const accessToken = authorization.split(' ')[1];
-    const refreshToken = req.headers['refreshtoken'];
-
+  async signOut(
+    @GetAccessToken() accessToken: string,
+    @Headers('refreshtoken') refreshToken: string,
+  ) {
     await Promise.all([
       this.authService.validateAccessToken(accessToken),
       this.authService.validateRefreshToken(refreshToken),

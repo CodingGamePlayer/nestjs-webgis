@@ -12,7 +12,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
-import { async } from 'rxjs';
 
 dotenv.config();
 
