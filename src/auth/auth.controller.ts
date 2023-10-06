@@ -16,14 +16,19 @@ import { Public } from 'src/decorators/public-api.decoratpr';
 import { User } from 'src/schema/user/user';
 import { RolesGuard } from './roles.guard';
 import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(RolesGuard)
 @Controller('auth')
+@UseGuards(RolesGuard)
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
   @Public()
+  @ApiResponse({ status: 200, type: SignInResDto })
+  @ApiResponse({ status: 400, description: 'BadRequestException' })
+  @ApiResponse({ status: 500, description: 'InternalServerException' })
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() signInReqDto: SignInReqDto): Promise<SignInResDto> {
     const validUser = await this.authService.validateUser(
@@ -37,6 +42,9 @@ export class AuthController {
   @Post('signup')
   @Public()
   @HttpCode(HttpStatus.CREATED)
+  @ApiResponse({ status: 200, description: 'OK' })
+  @ApiResponse({ status: 400, description: 'BadRequestException' })
+  @ApiResponse({ status: 500, description: 'InternalServerException' })
   async signUp(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
     await this.authService.validateNewUser(signUpReqDto);
 
@@ -45,6 +53,12 @@ export class AuthController {
 
   @Post('signout')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'OK' })
+  @ApiResponse({ status: 400, description: 'BadRequestException' })
+  @ApiResponse({ status: 401, description: 'UnauthorizedException' })
+  @ApiResponse({ status: 403, description: 'ForbiddenException' })
+  @ApiResponse({ status: 500, description: 'InternalServerException' })
   async signOut(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
@@ -59,6 +73,12 @@ export class AuthController {
 
   @Post('delete')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'OK' })
+  @ApiResponse({ status: 400, description: 'BadRequestException' })
+  @ApiResponse({ status: 401, description: 'UnauthorizedException' })
+  @ApiResponse({ status: 403, description: 'ForbiddenException' })
+  @ApiResponse({ status: 500, description: 'InternalServerException' })
   async delete(@GetAccessToken() accessToken: string) {
     await this.authService.validateAccessToken(accessToken);
 
@@ -67,6 +87,7 @@ export class AuthController {
   }
 
   @Get('profile')
+  @ApiBearerAuth()
   getProfile(@Request() req) {
     return req.user;
   }
