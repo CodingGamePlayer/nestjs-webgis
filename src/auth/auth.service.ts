@@ -73,6 +73,10 @@ export class AuthService {
     return await this.userRepository.deleteByEmail(email);
   }
 
+  async getUser(email: string): Promise<User> {
+    return await this.userRepository.findOneByEmail(email);
+  }
+
   async validateAccessToken(accessToken: string): Promise<void> {
     if (!accessToken) {
       throw new UnauthorizedException({
