@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { DataModule } from './data/data.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     CacheModule.register(),
     AuthModule,
     UserModule,
+    DataModule,
   ],
   controllers: [AppController],
   providers: [AppService],

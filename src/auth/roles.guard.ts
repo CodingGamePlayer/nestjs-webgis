@@ -11,7 +11,6 @@ export class RolesGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-    private authService: AuthService,
     private userRository: UserRepository,
   ) {}
 

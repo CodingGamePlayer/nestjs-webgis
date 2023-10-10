@@ -22,7 +22,7 @@ import {
   ApiCommonResponses,
 } from 'src/decorators/api-common-res.decorator';
 
-@Controller('auth')
+@Controller('auth/v1')
 @UseGuards(RolesGuard)
 @ApiTags('Auth')
 export class AuthController {

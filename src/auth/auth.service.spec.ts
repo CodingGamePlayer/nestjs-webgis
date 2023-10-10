@@ -241,16 +241,6 @@ describe('AuthService', () => {
         expect(result).toBeUndefined();
       });
 
-      it('should throw an error when the same refreshToken is saved in redis', async () => {
-        const refreshToken = await service.createRefreshToken();
-
-        await cacheManager.set(refreshToken, user.email);
-
-        expect(
-          service.saveRefreshToken(user.email, refreshToken),
-        ).rejects.toThrow();
-      });
-
       it('should throw an error when redis set failed', async () => {
         const refreshToken = await service.createRefreshToken();
 

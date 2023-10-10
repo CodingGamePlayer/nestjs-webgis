@@ -169,15 +169,6 @@ export class AuthService {
    */
   async saveRefreshToken(email: string, refreshToken: string): Promise<void> {
     try {
-      const savedToken = await this.cacheManager.get(refreshToken);
-
-      if (savedToken) {
-        throw new BadRequestException({
-          message: ExceptionMassage.REFRESH_TOKEN_ALREADY_EXISTS,
-          at: 'AuthService.saveRefreshToken',
-        });
-      }
-
       await this.cacheManager.set(refreshToken, email, 60 * 60 * 24 * 7);
     } catch (error) {
       if (!error.status) {
