@@ -6,16 +6,21 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { SignInReqDto, SignUpReqDto } from './dto/req.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { mock } from 'node:test';
+import { JwtService } from '@nestjs/jwt';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let userRepository: UserRepository;
   let authService: AuthService;
+  let jwtService: JwtService;
 
   const mockCacheManager = {
     set: jest.fn(),
     get: jest.fn(),
+    del: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -28,6 +33,7 @@ describe('AuthController (e2e)', () => {
 
     userRepository = moduleFixture.get<UserRepository>(UserRepository);
     authService = moduleFixture.get<AuthService>(AuthService);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -288,6 +294,63 @@ describe('AuthController (e2e)', () => {
     });
   });
 
+  describe('/auth/v1/signout (POST)', () => {
+    let user = new SignUpReqDto();
+    let signInUser = new SignInReqDto();
+
+    let tokens: {
+      accessToken: string;
+      refreshToken: string;
+    };
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+
+      user.name = 'John Doe';
+      user.email = 'john.doe1212@example.com';
+      user.password = 'Securepassword1';
+      user.passwordConfirmation = 'Securepassword1';
+
+      await authService.signUp(user);
+
+      signInUser.email = user.email;
+      signInUser.password = user.password;
+
+      tokens = await authService.signIn(
+        await authService.validateUser(signInUser.email, signInUser.password),
+      );
+    });
+
+    it('should be succesed with 200', () => {
+      mockCacheManager.del.mockReturnValueOnce(true);
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/signout')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(200);
+    });
+
+    it('should be failed with 401 when access token is not valid', () => {
+      tokens.accessToken = '';
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/signout')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(401);
+    });
+
+    it("should be failed with 401 when refresh token isn't valid", () => {
+      tokens.refreshToken = '';
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/signout')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(401);
+    });
+  });
   afterAll(async () => {
     await app.close();
   });
