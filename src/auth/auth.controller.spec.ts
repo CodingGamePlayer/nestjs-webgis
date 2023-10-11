@@ -409,6 +409,66 @@ describe('AuthController (e2e)', () => {
         .expect(401);
     });
   });
+
+  describe('/auth/v1/slide-session (POST)', () => {
+    let user = new SignUpReqDto();
+    let signInUser = new SignInReqDto();
+
+    let tokens: {
+      accessToken: string;
+      refreshToken: string;
+    };
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+
+      user.name = 'John Doe';
+      user.email = 'john.doe1212@example.com';
+      user.password = 'Securepassword1';
+      user.passwordConfirmation = 'Securepassword1';
+
+      await authService.signUp(user);
+
+      signInUser.email = user.email;
+      signInUser.password = user.password;
+
+      tokens = await authService.signIn(
+        await authService.validateUser(signInUser.email, signInUser.password),
+      );
+    });
+
+    it('should be succesed with 200', () => {
+      mockCacheManager.del.mockReturnValueOnce(true);
+      mockCacheManager.set.mockReturnValueOnce(true);
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/slide-session')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(200);
+    });
+
+    it('should be failed with 401 when access token is not valid', () => {
+      tokens.accessToken = '';
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/slide-session')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(401);
+    });
+
+    it("should be failed with 401 when refresh token isn't valid", () => {
+      tokens.refreshToken = '';
+
+      return request(app.getHttpServer())
+        .post('/auth/v1/slide-session')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .set('refreshtoken', tokens.refreshToken)
+        .expect(401);
+    });
+  });
+
   afterAll(async () => {
     await app.close();
   });
