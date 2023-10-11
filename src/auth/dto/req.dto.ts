@@ -54,9 +54,6 @@ export class SignUpReqDto {
   @IsString()
   company?: string;
 
-  @ApiProperty({
-    enum: UserRole,
-  })
   @IsOptional()
   @IsString()
   role?: UserRole;

@@ -3,7 +3,6 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/enums/user-role';
-import { AuthService } from './auth.service';
 import { UserRepository } from 'src/user/user.repository';
 
 @Injectable()

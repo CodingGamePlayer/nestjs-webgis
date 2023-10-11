@@ -1,14 +1,14 @@
 import { Transform } from 'class-transformer';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class PageReqDto {
-  @IsNotEmpty()
+  @IsOptional()
   @Transform(({ value }) => parseInt(value))
   @IsInt()
-  page: number;
+  page: number = 1;
 
-  @IsNotEmpty()
+  @IsOptional()
   @Transform(({ value }) => parseInt(value))
   @IsInt()
-  size: number;
+  size: number = 10;
 }
