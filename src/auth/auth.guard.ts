@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const token: string = this.extractTokenFromHeader(request);
-    const refreshToken: string = request.headers['refreshtoken'];
+    // const refreshToken: string = request.headers['refreshtoken'];
 
     if (!token) {
       throw new UnauthorizedException({
@@ -38,12 +38,12 @@ export class AuthGuard implements CanActivate {
 
     const payload = this.authService.decodeAccessToken(token);
 
-    if (!refreshToken) {
-      throw new UnauthorizedException({
-        message: ExceptionMassage.INVALID_REFRESH_TOKEN,
-        at: 'AuthGuard.canActivate',
-      });
-    }
+    // if (!refreshToken) {
+    //   throw new UnauthorizedException({
+    //     message: ExceptionMassage.INVALID_REFRESH_TOKEN,
+    //     at: 'AuthGuard.canActivate',
+    //   });
+    // }
 
     const isAccessTokenInBlackList =
       await this.authService.isAccessTokenInBlackList(token);

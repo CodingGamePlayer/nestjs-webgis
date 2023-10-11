@@ -48,7 +48,7 @@ export class UserService {
         await this.userRepository.updateById(updatedUser['_id'], updatedUser),
       );
     } catch (error) {
-      if (!error.at) {
+      if (!error.response) {
         throw new InternalServerErrorException({
           message: error.message,
           at: 'UserService.updateProfile',

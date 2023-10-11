@@ -19,7 +19,7 @@ export class UserRepository {
     return await this.userModel.find().skip(skip).limit(size).exec();
   }
 
-  async updateById(id: string, user: UpdateUserReqDto): Promise<User | null> {
+  async updateById(id: string, user: User): Promise<User | null> {
     return await this.userModel
       .findByIdAndUpdate(id, user, { new: true })
       .exec();
