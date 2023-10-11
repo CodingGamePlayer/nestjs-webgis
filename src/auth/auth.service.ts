@@ -73,6 +73,23 @@ export class AuthService {
     return await this.userRepository.deleteByEmail(email);
   }
 
+  async slideSession(
+    accessToken: string,
+    refreshToken: string,
+  ): Promise<SignInResDto> {
+    const decodedToken = this.decodeAccessToken(accessToken);
+
+    const user = await this.getUser(decodedToken.email);
+
+    const newAccessToken = await this.createAccessToken(user);
+    const newRefreshToken = await this.createRefreshToken();
+
+    await this.saveAccessTokenInBlackList(accessToken);
+    await this.saveRefreshToken(user.email, newRefreshToken);
+
+    return new SignInResDto(newAccessToken, newRefreshToken);
+  }
+
   async getUser(email: string): Promise<User> {
     return await this.userRepository.findOneByEmail(email);
   }

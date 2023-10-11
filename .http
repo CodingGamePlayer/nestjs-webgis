@@ -19,14 +19,20 @@ Content-Type: application/json
 }
 
 ### Logout
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lMTJAZXhhbXBsZS5jb20iLCJzdWIiOiI2NTFmNjA2NGI3NTAyZGM4NGNmNzZiNTMiLCJpYXQiOjE2OTY1NTUxMTcsImV4cCI6MTY5NjY0MTUxN30.48xeM4qF4WSWKoas9RpPoSkoWBLZwrzvwaYyzmc99HA
-@refresh_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aW1lIjoiMjAyMy0xMC0wNlQwMToxODozNy45NTFaIiwiaWF0IjoxNjk2NTU1MTE3LCJleHAiOjE2OTcxNTk5MTd9.j19wj5uWkI7Nq_l1dt2yh4WcY0aqD5yEOfgnIUu8c94
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lMTJAZXhhbXBsZS5jb20iLCJzdWIiOiI2NTI1ZWVkNWZkOWU2OWVhMzNhZDhhMDIiLCJpYXQiOjE2OTY5ODQ3OTIsImV4cCI6MTY5NzA3MTE5Mn0.YW2Y5rMuXhiWqvssRSiUgIpTYASwtXXKKbYHXtJWkdI
+@refresh_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aW1lIjoiMjAyMy0xMC0xMVQwMDozOTo1Mi4wMjRaIiwiaWF0IjoxNjk2OTg0NzkyLCJleHAiOjE2OTc1ODk1OTJ9.svQjQiEp4S0xbjCS-H7CgJfUsRX7S7TzL8-vlE9bQCs
 
-POST http://localhost:4000/auth/signout
+POST http://localhost:4000/api/auth/v1/signout
 Content-Type: application/json
 Authorization: Bearer {{token}}
 RefreshToken: {{refresh_token}}
 
+### Slide session
+
+POST http://localhost:4000/api/auth/v1/slide-session
+Content-Type: application/json
+Authorization: Bearer {{token}}
+RefreshToken: {{refresh_token}}
 
 ### Get Profile
 GET http://localhost:4000/auth/profile

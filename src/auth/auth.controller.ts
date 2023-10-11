@@ -77,6 +77,17 @@ export class AuthController {
     return await this.authService.deleteUser(paylod.email);
   }
 
+  @Post('slide-session')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiCommonResponses()
+  async slideSession(
+    @GetAccessToken() accessToken: string,
+    @Headers('refreshtoken') refreshToken: string,
+  ) {
+    return await this.authService.slideSession(accessToken, refreshToken);
+  }
+
   @Get('profile')
   @ApiBearerAuth()
   @ApiCommonResponses()
