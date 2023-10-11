@@ -71,6 +71,6 @@ export class UserController {
     @Headers('refreshtoken') refreshToken: string,
     @Body() updateUserReqDto: UpdateUserReqDto,
   ): Promise<PageResDto> {
-    return await this.UserService.modifyProfile(accessToken, updateUserReqDto);
+    return await this.UserService.updateProfile(accessToken, updateUserReqDto);
   }
 }

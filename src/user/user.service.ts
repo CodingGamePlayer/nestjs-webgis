@@ -33,7 +33,7 @@ export class UserService {
     }
   }
 
-  async modifyProfile(
+  async updateProfile(
     accessToken: string,
     updateUserReqDto: UpdateUserReqDto,
   ): Promise<PageResDto> {
@@ -45,25 +45,36 @@ export class UserService {
       const updatedUser = this.updateUser(foundUser, updateUserReqDto);
 
       return this.userToPageResDto(
-        await this.userRepository.updateByEmail(email, updatedUser),
+        await this.userRepository.updateById(updatedUser['_id'], updatedUser),
       );
     } catch (error) {
-      throw new InternalServerErrorException({
-        message: error.message,
-        at: 'UserService.modifyProfile',
-      });
+      if (!error.at) {
+        throw new InternalServerErrorException({
+          message: error.message,
+          at: 'UserService.updateProfile',
+        });
+      }
+
+      throw error;
     }
   }
 
   updateUser(user: User, updateUserReqDto: UpdateUserReqDto): User {
-    const updateFileds = {
-      ...user,
-      ...updateUserReqDto,
-    };
+    try {
+      const updateFileds = {
+        ...user,
+        ...updateUserReqDto,
+      };
 
-    Object.assign(user, updateFileds);
+      Object.assign(user, updateFileds);
 
-    return user;
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserService.updateUser',
+      });
+    }
   }
 
   userToPageResDto(user: User): PageResDto {

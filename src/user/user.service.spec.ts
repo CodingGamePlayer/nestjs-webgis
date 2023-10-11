@@ -12,6 +12,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
+import { UpdateUserReqDto } from './dto/req.dto';
 
 describe('UserService', () => {
   let service: UserService;
@@ -86,6 +87,58 @@ describe('UserService', () => {
         });
 
       await expect(service.findOneByEmail(accessToken)).rejects.toThrow();
+    });
+  });
+
+  describe('modifyProfile', () => {
+    const user = new User();
+    let accessToken: string;
+    user.name = 'test';
+    user.email = 'test@email.com';
+    user.password = 'testPassword!123';
+    user.company = 'testCompany';
+    user.role = UserRole.USER;
+
+    const updateUserReqDto = new UpdateUserReqDto();
+
+    updateUserReqDto.email = 'test@email.com';
+    updateUserReqDto.name = 'modifiedName';
+    updateUserReqDto.company = 'modifiedCompany';
+
+    beforeAll(async () => {
+      const createdUser = await userRepository.create(user);
+
+      accessToken = await authService.createAccessToken(createdUser);
+    });
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+    });
+
+    it('should return a updated user', async () => {
+      await userRepository.create(user);
+
+      const result = await service.modifyProfile(accessToken, updateUserReqDto);
+
+      expect(result).toBeDefined();
+      expect(result).toBeInstanceOf(PageResDto);
+      expect(result.name).toBe(updateUserReqDto.name);
+    });
+
+    it('should throw an error if jwtService.verifyAsync throws an error', async () => {
+      await expect(
+        service.modifyProfile('', updateUserReqDto),
+      ).rejects.toThrow();
+    });
+
+    describe('updateUser', () => {
+      it('should return a updated user', () => {
+        const result = service.updateUser(user, updateUserReqDto);
+
+        expect(result).toBeDefined();
+        expect(result).toBeInstanceOf(User);
+        expect(result.name).toBe(updateUserReqDto.name);
+      });
     });
   });
 });

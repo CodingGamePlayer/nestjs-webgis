@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { async } from 'rxjs';
 import { SignInReqDto } from 'src/auth/dto/req.dto';
 import { User, UserDocument } from 'src/schema/user/user';
+import { UpdateUserReqDto } from './dto/req.dto';
 
 @Injectable()
 export class UserRepository {
@@ -18,12 +19,10 @@ export class UserRepository {
     return await this.userModel.find().skip(skip).limit(size).exec();
   }
 
-  async updateByEmail(email: string, user: SignInReqDto): Promise<User | null> {
-    return await this.userModel.findByIdAndUpdate(email, user).exec();
-  }
-
-  async updateById(id: string, user: SignInReqDto): Promise<User | null> {
-    return await this.userModel.findByIdAndUpdate(id, user).exec();
+  async updateById(id: string, user: UpdateUserReqDto): Promise<User | null> {
+    return await this.userModel
+      .findByIdAndUpdate(id, user, { new: true })
+      .exec();
   }
 
   async deleteByEmail(email: string): Promise<User | null> {
