@@ -9,28 +9,39 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schema/user/user';
 import * as dotenv from 'dotenv';
 import { RolesGuard } from './roles.guard';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheModule, CacheModuleOptions } from '@nestjs/cache-manager';
 import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-store';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 dotenv.config();
 
 @Module({
   imports: [
     UserModule,
-    ConfigModule.forRoot({
-      envFilePath: '.env',
-    }),
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => {
+        return {
+          global: true,
+          secret: configService.get<string>('JWT_SECRET'),
+          signOptions: { expiresIn: '1d' },
+        };
+      },
+      inject: [ConfigService],
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    CacheModule.register<RedisClientOptions>({
-      store: redisStore as any,
-      url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+    CacheModule.registerAsync({
+      useFactory: async (
+        configService: ConfigService,
+      ): Promise<CacheModuleOptions> => {
+        return {
+          store: redisStore as any,
+          url: `redis://${configService.get<string>(
+            'REDIS_HOST',
+          )}:${configService.get<string>('REDIS_PORT')}`,
+        };
+      },
+      inject: [ConfigService],
     }),
   ],
 
