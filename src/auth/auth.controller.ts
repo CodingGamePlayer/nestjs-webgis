@@ -90,16 +90,4 @@ export class AuthController {
   ) {
     return await this.authService.slideSession(accessToken, refreshToken);
   }
-
-  @Get('profile')
-  @ApiBearerAuth()
-  @ApiCommonResponses()
-  async getProfile(
-    @GetAccessToken() accessToken: string,
-    @Headers('refreshtoken') refreshToken: string,
-  ) {
-    const paylod = this.authService.decodeAccessToken(accessToken);
-
-    return await this.authService.getUser(paylod.email);
-  }
 }
