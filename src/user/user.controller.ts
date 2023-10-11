@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   Headers,
+  Param,
 } from '@nestjs/common';
 import { PageReqDto } from './dto/req.dto';
 import { User } from 'src/schema/user/user';
@@ -18,7 +19,7 @@ import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
 import { PageResDto } from './dto/res.dto';
 import { Public } from 'src/decorators/public-api.decoratpr';
 
-@Controller('user')
+@Controller('user/v1')
 @ApiTags('User')
 @UseGuards(RolesGuard)
 export class UserController {
@@ -26,7 +27,7 @@ export class UserController {
 
   @Get('users')
   @Public()
-  // @Roles(UserRole.USER)
+  // @Roles(UserRole.Admin)
   @HttpCode(HttpStatus.OK)
   // @ApiBearerAuth()
   @ApiQuery({
@@ -49,5 +50,15 @@ export class UserController {
     const { page, size } = pageReqDto;
 
     return this.UserService.findAll(page, size);
+  }
+
+  @Get('profile')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async findOneById(
+    @GetAccessToken() accessToken: string,
+    @Headers('refreshtoken') refreshToken: string,
+  ): Promise<PageResDto> {
+    return this.UserService.findOneByEmail(accessToken);
   }
 }
