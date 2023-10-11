@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInReqDto, SignUpReqDto } from 'src/auth/dto/req.dto';
-import { SignInResDto } from './dto/res.dto';
+import { SignInResDto, SignUpResDto } from './dto/res.dto';
 import { Public } from 'src/decorators/public-api.decoratpr';
 import { User } from 'src/schema/user/user';
 import { RolesGuard } from './roles.guard';
@@ -21,6 +21,7 @@ import {
   ApiAuthCommonResponses,
   ApiCommonResponses,
 } from 'src/decorators/api-common-res.decorator';
+import { Sign } from 'crypto';
 
 @Controller('auth/v1')
 @UseGuards(RolesGuard)
@@ -46,8 +47,8 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiAuthCommonResponses()
-  @ApiResponse({ status: 201, description: 'Created', type: User })
-  async signUp(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
+  @ApiResponse({ status: 201, description: 'Created', type: SignUpResDto })
+  async signUp(@Body() signUpReqDto: SignUpReqDto): Promise<SignUpResDto> {
     await this.authService.validateNewUser(signUpReqDto);
 
     return this.authService.signUp(signUpReqDto);
@@ -69,11 +70,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
-  @ApiResponse({ status: 200, description: 'OK', type: User })
+  @ApiResponse({ status: 200, description: 'OK', type: SignUpResDto })
   async delete(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
-  ): Promise<User> {
+  ): Promise<SignUpResDto> {
     const paylod = this.authService.decodeAccessToken(accessToken);
 
     this.authService.signOut(accessToken, refreshToken);

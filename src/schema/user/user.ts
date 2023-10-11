@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { SignUpResDto } from 'src/auth/dto/res.dto';
 import { UserRole } from 'src/enums/user-role';
 
 export type UserDocument = User & Document;
@@ -55,6 +56,10 @@ export class User {
   })
   @Prop({ default: Date.now })
   createdAt: Date;
+
+  toSignUpResDto(): SignUpResDto {
+    return new SignUpResDto(this.name, this.email, this.company);
+  }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

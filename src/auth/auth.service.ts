@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SignInReqDto, SignUpReqDto } from 'src/auth/dto/req.dto';
-import { SignInResDto } from './dto/res.dto';
+import { SignInResDto, SignUpResDto } from './dto/res.dto';
 import { ExceptionMassage } from 'src/enums/exception';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -29,7 +29,7 @@ export class AuthService {
    * @param signUpReqDto - The user information.
    * @returns A promise that resolves to the created User object.
    */
-  async signUp(signUpReqDto: SignUpReqDto): Promise<User> {
+  async signUp(signUpReqDto: SignUpReqDto): Promise<SignUpResDto> {
     const hashedPassword = await this.hashPassword(signUpReqDto.password);
 
     const createdUser = {
@@ -37,7 +37,7 @@ export class AuthService {
       password: hashedPassword,
     };
 
-    return this.userRepository.create(createdUser);
+    return (await this.userRepository.create(createdUser)).toSignUpResDto();
   }
 
   /**
@@ -69,8 +69,8 @@ export class AuthService {
    * @param email - The email of the user to delete.
    * @returns - A promise that resolves to the deleted User object.
    */
-  async deleteUser(email: string): Promise<User> {
-    return await this.userRepository.deleteByEmail(email);
+  async deleteUser(email: string): Promise<SignUpResDto> {
+    return (await this.userRepository.deleteByEmail(email)).toSignUpResDto();
   }
 
   async slideSession(
