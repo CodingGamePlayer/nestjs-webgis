@@ -36,8 +36,9 @@ export class AuthService {
       ...signUpReqDto,
       password: hashedPassword,
     };
-
-    return (await this.userRepository.create(createdUser)).toSignUpResDto();
+    return this.userToSignUpResDto(
+      await this.userRepository.create(createdUser),
+    );
   }
 
   /**
@@ -70,7 +71,9 @@ export class AuthService {
    * @returns - A promise that resolves to the deleted User object.
    */
   async deleteUser(email: string): Promise<SignUpResDto> {
-    return (await this.userRepository.deleteByEmail(email)).toSignUpResDto();
+    return this.userToSignUpResDto(
+      await this.userRepository.deleteByEmail(email),
+    );
   }
 
   async slideSession(
@@ -289,5 +292,9 @@ export class AuthService {
   decodeAccessToken(accessToken: string): DecodedToken {
     const payload = this.jwtService.decode(accessToken);
     return payload as DecodedToken;
+  }
+
+  userToSignUpResDto(user: User): SignUpResDto {
+    return new SignUpResDto(user.name, user.email, user.company);
   }
 }
