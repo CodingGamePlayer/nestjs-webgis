@@ -118,7 +118,7 @@ describe('UserService', () => {
     it('should return a updated user', async () => {
       await userRepository.create(user);
 
-      const result = await service.modifyProfile(accessToken, updateUserReqDto);
+      const result = await service.updateProfile(accessToken, updateUserReqDto);
 
       expect(result).toBeDefined();
       expect(result).toBeInstanceOf(PageResDto);
@@ -127,7 +127,7 @@ describe('UserService', () => {
 
     it('should throw an error if jwtService.verifyAsync throws an error', async () => {
       await expect(
-        service.modifyProfile('', updateUserReqDto),
+        service.updateProfile('', updateUserReqDto),
       ).rejects.toThrow();
     });
 

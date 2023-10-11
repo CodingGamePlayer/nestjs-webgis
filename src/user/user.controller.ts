@@ -10,6 +10,7 @@ import {
   Param,
   Put,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { PageReqDto, UpdateUserReqDto } from './dto/req.dto';
 import { User } from 'src/schema/user/user';
@@ -71,6 +72,13 @@ export class UserController {
     @Headers('refreshtoken') refreshToken: string,
     @Body() updateUserReqDto: UpdateUserReqDto,
   ): Promise<PageResDto> {
+    if (Object.values(updateUserReqDto).every((value) => value.length === 0)) {
+      throw new BadRequestException({
+        message: 'At least one field must be filled',
+        at: 'UserController.modifyProfile',
+      });
+    }
+
     return await this.UserService.updateProfile(accessToken, updateUserReqDto);
   }
 }
