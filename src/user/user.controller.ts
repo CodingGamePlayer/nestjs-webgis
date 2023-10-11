@@ -15,6 +15,8 @@ import { UserRole } from 'src/enums/user-role';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
+import { PageResDto } from './dto/res.dto';
+import { Public } from 'src/decorators/public-api.decoratpr';
 
 @Controller('user')
 @ApiTags('User')
@@ -23,26 +25,27 @@ export class UserController {
   constructor(private readonly UserService: UserService) {}
 
   @Get('users')
-  @Roles(UserRole.USER)
+  @Public()
+  // @Roles(UserRole.USER)
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
     required: false,
     type: Number,
-    description: '페이지 번호',
+    description: 'page number',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: '한 페이지당 항목 수',
+    description: 'page size',
   })
   async findAll(
-    @GetAccessToken() accessToken: string,
-    @Headers('refreshtoken') refreshToken: string,
+    // @GetAccessToken() accessToken: string,
+    // @Headers('refreshtoken') refreshToken: string,
     @Query() pageReqDto: PageReqDto,
-  ): Promise<User[]> {
+  ): Promise<PageResDto[]> {
     const { page, size } = pageReqDto;
 
     return this.UserService.findAll(page, size);

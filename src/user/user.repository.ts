@@ -13,8 +13,9 @@ export class UserRepository {
     return await this.userModel.create(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userModel.find().exec();
+  async findAll(page: number, size: number): Promise<User[]> {
+    const skip = (page - 1) * size;
+    return await this.userModel.find().skip(skip).limit(size).exec();
   }
 
   async updateByEmail(email: string, user: SignInReqDto): Promise<User | null> {
