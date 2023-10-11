@@ -7,9 +7,6 @@ import * as request from 'supertest';
 import { SignInReqDto, SignUpReqDto } from './dto/req.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
