@@ -7,7 +7,8 @@ import {
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import { SignInResDto } from './auth/dto/res.dto';
+import { SignInResDto, SignUpResDto } from './auth/dto/res.dto';
+import { User } from './schema/user/user';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +25,7 @@ async function bootstrap() {
     .build();
 
   const options = {
-    extraModels: [SignInResDto],
+    extraModels: [SignInResDto, SignUpResDto, User],
   };
 
   const swaggerOptions: SwaggerCustomOptions = {

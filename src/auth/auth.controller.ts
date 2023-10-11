@@ -16,7 +16,7 @@ import { Public } from 'src/decorators/public-api.decoratpr';
 import { User } from 'src/schema/user/user';
 import { RolesGuard } from './roles.guard';
 import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ApiAuthCommonResponses,
   ApiCommonResponses,
@@ -30,8 +30,9 @@ export class AuthController {
 
   @Post('signin')
   @Public()
-  @ApiAuthCommonResponses()
   @HttpCode(HttpStatus.OK)
+  @ApiAuthCommonResponses()
+  @ApiResponse({ status: 200, description: 'OK', type: SignInResDto })
   async signIn(@Body() signInReqDto: SignInReqDto): Promise<SignInResDto> {
     const validUser = await this.authService.validateUser(
       signInReqDto.email,
@@ -45,6 +46,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiAuthCommonResponses()
+  @ApiResponse({ status: 201, description: 'Created', type: User })
   async signUp(@Body() signUpReqDto: SignUpReqDto): Promise<User> {
     await this.authService.validateNewUser(signUpReqDto);
 
@@ -55,6 +57,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
+  @ApiResponse({ status: 200, description: 'OK' })
   async signOut(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
@@ -66,10 +69,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
+  @ApiResponse({ status: 200, description: 'OK', type: User })
   async delete(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
-  ) {
+  ): Promise<User> {
     const paylod = this.authService.decodeAccessToken(accessToken);
 
     this.authService.signOut(accessToken, refreshToken);
@@ -81,6 +85,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
+  @ApiResponse({ status: 200, description: 'OK', type: SignInResDto })
   async slideSession(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
