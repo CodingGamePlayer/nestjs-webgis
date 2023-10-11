@@ -159,13 +159,6 @@ export class UserRepository {
     try {
       const user = await this.userModel.findOne({ email }).exec();
 
-      if (!user) {
-        throw new NotFoundException({
-          message: 'User not found',
-          at: 'UserRepository.findOneByEmail',
-        });
-      }
-
       return user;
     } catch (error) {
       if (!error.response) {
@@ -190,13 +183,6 @@ export class UserRepository {
       }
 
       const user = await this.userModel.findById(id).exec();
-
-      if (!user) {
-        throw new NotFoundException({
-          message: 'User not found',
-          at: 'UserRepository.findOneById',
-        });
-      }
 
       return user;
     } catch (error) {
