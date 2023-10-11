@@ -3,6 +3,7 @@ import { User } from 'src/schema/user/user';
 import { PageResDto } from './dto/res.dto';
 import { UserRepository } from './user.repository';
 import { JwtService } from '@nestjs/jwt';
+import { UpdateUserReqDto } from './dto/req.dto';
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,39 @@ export class UserService {
         at: 'UserService.findOneByEmail',
       });
     }
+  }
+
+  async modifyProfile(
+    accessToken: string,
+    updateUserReqDto: UpdateUserReqDto,
+  ): Promise<PageResDto> {
+    try {
+      const { email } = await this.jwtService.verifyAsync(accessToken);
+
+      const foundUser = await this.userRepository.findOneByEmail(email);
+
+      const updatedUser = this.updateUser(foundUser, updateUserReqDto);
+
+      return this.userToPageResDto(
+        await this.userRepository.updateByEmail(email, updatedUser),
+      );
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserService.modifyProfile',
+      });
+    }
+  }
+
+  updateUser(user: User, updateUserReqDto: UpdateUserReqDto): User {
+    const updateFileds = {
+      ...user,
+      ...updateUserReqDto,
+    };
+
+    Object.assign(user, updateFileds);
+
+    return user;
   }
 
   userToPageResDto(user: User): PageResDto {

@@ -15,6 +15,10 @@ describe('UserController', () => {
     app = module.createNestApplication();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('should be defined', () => {
     expect(app).toBeDefined();
   });

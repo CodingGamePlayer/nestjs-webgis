@@ -8,8 +8,10 @@ import {
   UseGuards,
   Headers,
   Param,
+  Put,
+  Body,
 } from '@nestjs/common';
-import { PageReqDto } from './dto/req.dto';
+import { PageReqDto, UpdateUserReqDto } from './dto/req.dto';
 import { User } from 'src/schema/user/user';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/enums/user-role';
@@ -53,12 +55,22 @@ export class UserController {
   }
 
   @Get('profile')
-  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  async findOneById(
+  async getProfile(
     @GetAccessToken() accessToken: string,
     @Headers('refreshtoken') refreshToken: string,
   ): Promise<PageResDto> {
     return this.UserService.findOneByEmail(accessToken);
+  }
+
+  @Put('profile')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async modifyProfile(
+    @GetAccessToken() accessToken: string,
+    @Headers('refreshtoken') refreshToken: string,
+    @Body() updateUserReqDto: UpdateUserReqDto,
+  ): Promise<PageResDto> {
+    return await this.UserService.modifyProfile(accessToken, updateUserReqDto);
   }
 }
