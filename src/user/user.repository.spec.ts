@@ -62,4 +62,93 @@ describe('UserRepository', () => {
       );
     });
   });
+
+  describe('findAll', () => {
+    beforeEach(async () => {
+      const user = new User();
+
+      for (let i = 0; i < 10; i++) {
+        user.name = `test${i}`;
+        user.email = `test${i}@email.com`;
+        user.password = 'testPassword!123';
+        user.company = 'testCompany';
+        await userRepository.create(user);
+      }
+    });
+
+    afterEach(async () => {
+      await userRepository.deleteAll();
+    });
+
+    it('should return an array of users', async () => {
+      const users = await userRepository.findAll(1, 10);
+
+      expect(users).toBeDefined();
+      expect(users.length).toEqual(10);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const findMock = {
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'find')
+        .mockImplementationOnce(() => findMock as any);
+
+      await expect(userRepository.findAll(1, 10)).rejects.toThrowError(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('updateById', () => {
+    const user = new User();
+    let createdUser: User;
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'testPassword!123';
+      user.company = 'testCompany';
+
+      await userRepository.create(user);
+      createdUser = await userRepository.findOneByEmail(user.email);
+
+      createdUser.name = 'modifiedName';
+    });
+
+    it('should return a updated user', async () => {
+      const updatedUser = await userRepository.updateById(
+        createdUser['_id'],
+        createdUser,
+      );
+
+      expect(updatedUser).toBeDefined();
+      expect(updatedUser.name).toEqual(createdUser.name);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const findByIdAndUpdateMock = {
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'findByIdAndUpdate')
+        .mockImplementationOnce(() => findByIdAndUpdateMock as any);
+
+      await expect(
+        userRepository.updateById(createdUser['_id'], createdUser),
+      ).rejects.toThrowError(InternalServerErrorException);
+    });
+
+    it('should throw an error if id is not a valid ObjectId', async () => {
+      await expect(
+        userRepository.updateById('invalidId', createdUser),
+      ).rejects.toThrowError(BadRequestException);
+    });
+  });
 });

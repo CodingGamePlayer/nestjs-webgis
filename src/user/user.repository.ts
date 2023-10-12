@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { isObject } from 'class-validator';
 import { Model, Types } from 'mongoose';
 import { SignInReqDto } from 'src/auth/dto/req.dto';
 import { User, UserDocument } from 'src/schema/user/user';
@@ -19,12 +20,10 @@ export class UserRepository {
 
       return result;
     } catch (error) {
-      if (!error.response) {
-        throw new InternalServerErrorException({
-          message: error.message,
-          at: 'UserRepository.create',
-        });
-      }
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserRepository.create',
+      });
     }
   }
 
@@ -34,34 +33,20 @@ export class UserRepository {
 
       const users = await this.userModel.find().skip(skip).limit(size).exec();
 
-      if (users.length === 0) {
-        throw new NotFoundException({
-          message: 'Users not found',
-          at: 'UserRepository.findAll',
-        });
-      }
-
       return users;
     } catch (error) {
-      if (!error.response) {
-        throw new InternalServerErrorException({
-          message: error.message,
-          at: 'UserRepository.findAll',
-        });
-      }
+      console.log(error);
 
-      throw error;
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserRepository.findAll',
+      });
     }
   }
 
   async updateById(id: string, user: User): Promise<User | null> {
     try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException({
-          message: 'User id is invalid',
-          at: 'UserRepository.updateById',
-        });
-      }
+      this.isObjectId(id);
 
       return await this.userModel
         .findByIdAndUpdate(id, user, { new: true })
@@ -185,6 +170,15 @@ export class UserRepository {
       }
 
       throw error;
+    }
+  }
+
+  private isObjectId(id: string): void {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException({
+        message: 'User id is invalid',
+        at: 'UserRepository.isObjectId',
+      });
     }
   }
 }
