@@ -124,6 +124,8 @@ export class UserRepository {
 
       const user = await this.userModel.findById(id).exec();
 
+      console.log({ user });
+
       return user;
     } catch (error) {
       if (!error.response) {

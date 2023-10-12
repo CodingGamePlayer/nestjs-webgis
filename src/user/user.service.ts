@@ -1,9 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { User } from 'src/schema/user/user';
 import { PageResDto } from './dto/res.dto';
 import { UserRepository } from './user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserReqDto } from './dto/req.dto';
+import { find } from 'rxjs';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -30,6 +36,21 @@ export class UserService {
         message: error.message,
         at: 'UserService.findOneByEmail',
       });
+    }
+  }
+
+  async findOneById(id: string): Promise<PageResDto> {
+    try {
+      return this.userToPageResDto(await this.userRepository.findOneById(id));
+    } catch (error) {
+      if (!error.response) {
+        throw new InternalServerErrorException({
+          message: error.message,
+          at: 'UserService.findOneById',
+        });
+      }
+
+      throw error;
     }
   }
 
@@ -79,5 +100,14 @@ export class UserService {
 
   userToPageResDto(user: User): PageResDto {
     return new PageResDto(user);
+  }
+
+  validateObjectId(id: string): void {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException({
+        message: 'User id is invalid',
+        at: 'UserRepository.isObjectId',
+      });
+    }
   }
 }

@@ -13,10 +13,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PageReqDto, UpdateUserReqDto } from './dto/req.dto';
-import { User } from 'src/schema/user/user';
-import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from 'src/enums/user-role';
-import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
 import { PageResDto } from './dto/res.dto';
@@ -28,6 +25,33 @@ import { ApiCommonResponses } from 'src/decorators/api-common-res.decorator';
 @UseGuards(RolesGuard)
 export class UserController {
   constructor(private readonly UserService: UserService) {}
+
+  @Get('/me')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiCommonResponses()
+  @ApiResponse({
+    status: 200,
+    description: 'The profile of the user',
+    type: PageResDto,
+  })
+  async getMe(@GetAccessToken() accessToken: string): Promise<PageResDto> {
+    return await this.UserService.findOneByEmail(accessToken);
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  // @ApiBearerAuth()
+  @ApiCommonResponses()
+  @ApiResponse({
+    status: 200,
+    description: 'The profile of the user',
+    type: PageResDto,
+  })
+  async getUserById(@Query('id') id: string): Promise<PageResDto> {
+    return this.UserService.findOneById(id);
+  }
 
   @Get('users')
   @Public()

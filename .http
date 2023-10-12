@@ -49,3 +49,8 @@ Authorization: Bearer {{token}}
 ### Get Users
 GET http://localhost:4000/api/user/v1/users?page=1&size=10
 Content-Type: application/json
+
+
+### Get User By Id
+GET http://localhost:4000/api/user/v1/users?id=65275cb5e5952b9a063e8db9
+Content-Type: application/json
