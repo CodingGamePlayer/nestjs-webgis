@@ -7,6 +7,7 @@ import {
   Headers,
   Post,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInReqDto, SignUpReqDto } from 'src/auth/dto/req.dto';
@@ -63,7 +64,19 @@ export class AuthController {
     return this.authService.signOut(accessToken, refreshToken);
   }
 
-  @Post('delete')
+  @Post('slide-session')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiCommonResponses()
+  @ApiResponse({ status: 200, description: 'OK', type: SignInResDto })
+  async slideSession(
+    @GetAccessToken() accessToken: string,
+    @Headers('refreshtoken') refreshToken: string,
+  ) {
+    return await this.authService.slideSession(accessToken, refreshToken);
+  }
+
+  @Delete('delete')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
@@ -77,17 +90,5 @@ export class AuthController {
     this.authService.signOut(accessToken, refreshToken);
 
     return await this.authService.deleteUser(paylod.email);
-  }
-
-  @Post('slide-session')
-  @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
-  @ApiCommonResponses()
-  @ApiResponse({ status: 200, description: 'OK', type: SignInResDto })
-  async slideSession(
-    @GetAccessToken() accessToken: string,
-    @Headers('refreshtoken') refreshToken: string,
-  ) {
-    return await this.authService.slideSession(accessToken, refreshToken);
   }
 }

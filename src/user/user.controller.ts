@@ -31,7 +31,7 @@ export class UserController {
 
   @Get('users')
   @Public()
-  @Roles(UserRole.ADMIN)
+  // @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
