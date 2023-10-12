@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { DataModule } from './data/data.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DataModule } from './data/data.module';
     AuthModule,
     UserModule,
     DataModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

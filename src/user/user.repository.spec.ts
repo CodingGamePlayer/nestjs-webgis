@@ -245,9 +245,9 @@ describe('UserRepository', () => {
     it('should delete all users', async () => {
       await userRepository.deleteAll();
 
-      const users = await userRepository.findAll(1, 10);
-
-      expect(users.length).toEqual(0);
+      await expect(userRepository.findAll(1, 10)).rejects.toThrowError(
+        BadRequestException,
+      );
     });
 
     it('should throw an error when mongoose throw an error', async () => {
