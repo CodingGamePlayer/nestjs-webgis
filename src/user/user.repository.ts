@@ -17,13 +17,6 @@ export class UserRepository {
     try {
       const result = await this.userModel.create(user);
 
-      if (!result) {
-        throw new BadRequestException({
-          message: 'User could not be created',
-          at: 'UserRepository.create',
-        });
-      }
-
       return result;
     } catch (error) {
       if (!error.response) {
@@ -32,8 +25,6 @@ export class UserRepository {
           at: 'UserRepository.create',
         });
       }
-
-      throw error;
     }
   }
 
