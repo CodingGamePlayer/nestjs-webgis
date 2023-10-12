@@ -114,14 +114,10 @@ export class UserRepository {
 
       return user;
     } catch (error) {
-      if (!error.response) {
-        throw new InternalServerErrorException({
-          message: error.message,
-          at: 'UserRepository.findOneByEmail',
-        });
-      }
-
-      throw error;
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserRepository.findOneByEmail',
+      });
     }
   }
 

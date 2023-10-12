@@ -265,5 +265,24 @@ describe('UserRepository', () => {
     });
   });
 
-  describe('findOneByEmail', () => {});
+  describe('findOneByEmail', () => {
+    const user = new User();
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'testPassword!123';
+      user.company = 'testCompany';
+    });
+
+    it('should return a user', async () => {
+      await userRepository.create(user);
+
+      const result = await userRepository.findOneByEmail(user.email);
+
+      expect(result).toBeDefined();
+      expect(result.name).toEqual(user.name);
+    });
+  });
 });
