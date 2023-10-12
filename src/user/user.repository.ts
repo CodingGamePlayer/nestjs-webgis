@@ -30,14 +30,22 @@ export class UserRepository {
 
       const users = await this.userModel.find().skip(skip).limit(size).exec();
 
+      if (users.length === 0) {
+        throw new BadRequestException({
+          message: 'Users are not found',
+          at: 'UserRepository.findAll',
+        });
+      }
+
       return users;
     } catch (error) {
-      console.log(error);
-
-      throw new InternalServerErrorException({
-        message: error.message,
-        at: 'UserRepository.findAll',
-      });
+      if (!error.response) {
+        throw new InternalServerErrorException({
+          message: error.message,
+          at: 'UserRepository.findAll',
+        });
+      }
+      throw error;
     }
   }
 
@@ -124,7 +132,12 @@ export class UserRepository {
 
       const user = await this.userModel.findById(id).exec();
 
-      console.log({ user });
+      if (!user) {
+        throw new BadRequestException({
+          message: 'User is not found',
+          at: 'UserRepository.findOneById',
+        });
+      }
 
       return user;
     } catch (error) {

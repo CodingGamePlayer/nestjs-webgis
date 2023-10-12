@@ -291,8 +291,17 @@ export class AuthService {
   }
 
   decodeAccessToken(accessToken: string): DecodedToken {
-    const payload = this.jwtService.decode(accessToken);
-    return payload as DecodedToken;
+    try {
+      this.jwtService.verify(accessToken);
+
+      const payload = this.jwtService.decode(accessToken);
+      return payload as DecodedToken;
+    } catch (error) {
+      throw new UnauthorizedException({
+        message: ExceptionMassage.INVALID_ACCESS_TOKEN,
+        at: 'AuthService.decodeAccessToken',
+      });
+    }
   }
 
   userToSignUpResDto(user: User): SignUpResDto {

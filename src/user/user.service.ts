@@ -8,7 +8,6 @@ import { PageResDto } from './dto/res.dto';
 import { UserRepository } from './user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserReqDto } from './dto/req.dto';
-import { find } from 'rxjs';
 import { Types } from 'mongoose';
 
 @Injectable()

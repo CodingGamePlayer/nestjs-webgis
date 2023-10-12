@@ -6,11 +6,9 @@ import {
   HttpStatus,
   Query,
   UseGuards,
-  Headers,
-  Param,
-  Put,
   Body,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { PageReqDto, UpdateUserReqDto } from './dto/req.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -19,6 +17,9 @@ import { GetAccessToken } from 'src/decorators/get-access-token.decorator';
 import { PageResDto } from './dto/res.dto';
 import { Public } from 'src/decorators/public-api.decoratpr';
 import { ApiCommonResponses } from 'src/decorators/api-common-res.decorator';
+import { UserRole } from 'src/enums/user-role';
+import { Roles } from 'src/decorators/roles.decorator';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user/v1')
 @ApiTags('User')
@@ -26,23 +27,9 @@ import { ApiCommonResponses } from 'src/decorators/api-common-res.decorator';
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
-  @Get('/me')
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiCommonResponses()
-  @ApiResponse({
-    status: 200,
-    description: 'The profile of the user',
-    type: PageResDto,
-  })
-  async getMe(@GetAccessToken() accessToken: string): Promise<PageResDto> {
-    return await this.UserService.findOneByEmail(accessToken);
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  // @ApiBearerAuth()
   @ApiCommonResponses()
   @ApiResponse({
     status: 200,
@@ -54,8 +41,7 @@ export class UserController {
   }
 
   @Get('users')
-  @Public()
-  // @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiCommonResponses()
@@ -66,8 +52,7 @@ export class UserController {
     isArray: true,
   })
   async findAll(
-    // @GetAccessToken() accessToken: string,
-    // @Headers('refreshtoken') refreshToken: string,
+    @GetAccessToken() accessToken: string,
     @Query() pageReqDto: PageReqDto,
   ): Promise<PageResDto[]> {
     const { page, size } = pageReqDto;
@@ -88,7 +73,7 @@ export class UserController {
     return this.UserService.findOneByEmail(accessToken);
   }
 
-  @Put('profile')
+  @Patch('profile')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async modifyProfile(

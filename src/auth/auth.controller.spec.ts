@@ -385,7 +385,7 @@ describe('AuthController (e2e)', () => {
       mockCacheManager.del.mockReturnValueOnce(true);
 
       return request(app.getHttpServer())
-        .post('/auth/v1/delete')
+        .delete('/auth/v1/delete')
         .set('Authorization', `Bearer ${tokens.accessToken}`)
         .set('refreshtoken', tokens.refreshToken)
         .expect(200);
@@ -395,7 +395,7 @@ describe('AuthController (e2e)', () => {
       tokens.accessToken = '';
 
       return request(app.getHttpServer())
-        .post('/auth/v1/delete')
+        .delete('/auth/v1/delete')
         .set('Authorization', `Bearer ${tokens.accessToken}`)
         .set('refreshtoken', tokens.refreshToken)
         .expect(401);
