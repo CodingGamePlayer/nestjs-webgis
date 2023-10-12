@@ -151,4 +151,39 @@ describe('UserRepository', () => {
       ).rejects.toThrowError(BadRequestException);
     });
   });
+
+  describe('deleteByEmail', () => {
+    const user = new User();
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'testPassword!123';
+      user.company = 'testCompany';
+
+      await userRepository.create(user);
+    });
+
+    it('should return a deleted user', async () => {
+      const deletedUser = await userRepository.deleteByEmail(user.email);
+
+      expect(deletedUser).toBeDefined();
+      expect(deletedUser.name).toEqual(user.name);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const findOneAndDeleteMock = {
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'findOneAndDelete')
+        .mockImplementationOnce(() => findOneAndDeleteMock as any);
+
+      await expect(
+        userRepository.deleteByEmail(user.email),
+      ).rejects.toThrowError(InternalServerErrorException);
+    });
+  });
 });

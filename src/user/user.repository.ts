@@ -69,13 +69,6 @@ export class UserRepository {
         .findOneAndDelete({ email })
         .exec();
 
-      if (!deletedUser) {
-        throw new BadRequestException({
-          messaage: 'User could not be deleted',
-          at: 'UserRepository.deleteByEmail',
-        });
-      }
-
       return deletedUser;
     } catch (error) {
       if (!error.response) {
@@ -99,13 +92,6 @@ export class UserRepository {
       }
 
       const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
-
-      if (!deletedUser) {
-        throw new BadRequestException({
-          message: 'User could not be deleted',
-          at: 'UserRepository.deleteById',
-        });
-      }
 
       return deletedUser;
     } catch (error) {
