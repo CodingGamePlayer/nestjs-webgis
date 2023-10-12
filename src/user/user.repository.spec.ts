@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
 import { User, UserDocument, UserSchema } from 'src/schema/user/user';
 import { UserRepository } from './user.repository';
-import { Model, ObjectId, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import {
   BadRequestException,
   InternalServerErrorException,

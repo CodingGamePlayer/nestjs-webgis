@@ -2,12 +2,9 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { isObject } from 'class-validator';
 import { Model, Types } from 'mongoose';
-import { SignInReqDto } from 'src/auth/dto/req.dto';
 import { User, UserDocument } from 'src/schema/user/user';
 
 @Injectable()
