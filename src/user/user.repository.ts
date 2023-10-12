@@ -46,7 +46,7 @@ export class UserRepository {
 
   async updateById(id: string, user: User): Promise<User | null> {
     try {
-      this.isObjectId(id);
+      this.validateObjectId(id);
 
       return await this.userModel
         .findByIdAndUpdate(id, user, { new: true })
@@ -71,25 +71,16 @@ export class UserRepository {
 
       return deletedUser;
     } catch (error) {
-      if (!error.response) {
-        throw new InternalServerErrorException({
-          message: error.message,
-          at: 'UserRepository.deleteByEmail',
-        });
-      }
-
-      throw error;
+      throw new InternalServerErrorException({
+        message: error.message,
+        at: 'UserRepository.deleteByEmail',
+      });
     }
   }
 
   async deleteById(id: string): Promise<User | null> {
     try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException({
-          message: 'User id is invalid',
-          at: 'UserRepository.deleteById',
-        });
-      }
+      this.validateObjectId(id);
 
       const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
 
@@ -159,7 +150,7 @@ export class UserRepository {
     }
   }
 
-  private isObjectId(id: string): void {
+  private validateObjectId(id: string): void {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException({
         message: 'User id is invalid',

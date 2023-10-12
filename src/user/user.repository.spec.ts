@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MongodbHelper } from 'src/helper/mongodbHelper';
 import { User, UserDocument, UserSchema } from 'src/schema/user/user';
 import { UserRepository } from './user.repository';
-import { Model } from 'mongoose';
+import { Model, ObjectId, Types } from 'mongoose';
 import {
   BadRequestException,
   InternalServerErrorException,
@@ -186,4 +186,84 @@ describe('UserRepository', () => {
       ).rejects.toThrowError(InternalServerErrorException);
     });
   });
+
+  describe('deleteById', () => {
+    const user = new User();
+    let savedUser: User;
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'testPassword!123';
+      user.company = 'testCompany';
+
+      savedUser = await userRepository.create(user);
+    });
+
+    it('should return a deleted user', async () => {
+      const deletedUser = await userRepository.deleteById(savedUser['_id']);
+
+      expect(deletedUser).toBeDefined();
+      expect(deletedUser.name).toEqual(user.name);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const findByIdAndDeleteMock = {
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'findByIdAndDelete')
+        .mockImplementationOnce(() => findByIdAndDeleteMock as any);
+
+      await expect(
+        userRepository.deleteById(savedUser['_id']),
+      ).rejects.toThrowError(InternalServerErrorException);
+    });
+
+    it('should throw an error if id is not a valid ObjectId', async () => {
+      await expect(userRepository.deleteById('invalidId')).rejects.toThrowError(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('deleteAll', () => {
+    beforeEach(async () => {
+      const user = new User();
+
+      for (let i = 0; i < 10; i++) {
+        user.name = `test${i}`;
+        user.email = `test${i}@email.com`;
+        user.password = 'testPassword!123';
+        user.company = 'testCompany';
+        await userRepository.create(user);
+      }
+    });
+
+    it('should delete all users', async () => {
+      await userRepository.deleteAll();
+
+      const users = await userRepository.findAll(1, 10);
+
+      expect(users.length).toEqual(0);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const deleteManyMock = {
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'deleteMany')
+        .mockImplementationOnce(() => deleteManyMock as any);
+
+      await expect(userRepository.deleteAll()).rejects.toThrowError(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('findOneByEmail', () => {});
 });
