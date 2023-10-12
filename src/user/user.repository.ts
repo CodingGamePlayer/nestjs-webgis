@@ -123,13 +123,7 @@ export class UserRepository {
 
   async findOneById(id: string): Promise<User | null> {
     try {
-      // ID 형식 검증
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException({
-          message: 'User id is invalid',
-          at: 'UserRepository.findOneById',
-        });
-      }
+      this.validateObjectId(id);
 
       const user = await this.userModel.findById(id).exec();
 

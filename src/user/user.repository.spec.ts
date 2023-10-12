@@ -285,4 +285,40 @@ describe('UserRepository', () => {
       expect(result.name).toEqual(user.name);
     });
   });
+
+  describe('findOneById', () => {
+    const user = new User();
+    let savedUser: User;
+
+    beforeEach(async () => {
+      await userRepository.deleteAll();
+      user.name = 'test';
+      user.email = 'test@email.com';
+      user.password = 'testPassword!123';
+      user.company = 'testCompany';
+
+      savedUser = await userRepository.create(user);
+    });
+
+    it('should return a user', async () => {
+      const result = await userRepository.findOneById(savedUser['_id']);
+
+      expect(result).toBeDefined();
+      expect(result.name).toEqual(user.name);
+    });
+
+    it('should throw an error when mongoose throw an error', async () => {
+      const findByIdMock = {
+        exec: jest.fn().mockRejectedValueOnce(new Error()),
+      };
+
+      jest
+        .spyOn(userModel, 'findById')
+        .mockImplementationOnce(() => findByIdMock as any);
+
+      await expect(
+        userRepository.findOneById(savedUser['_id']),
+      ).rejects.toThrowError(InternalServerErrorException);
+    });
+  });
 });
