@@ -13,7 +13,7 @@ import { User, UserDocument } from 'src/schema/user/user';
 export class UserRepository {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(user: SignInReqDto): Promise<User> {
+  async create(user: User): Promise<User> {
     try {
       const result = await this.userModel.create(user);
 

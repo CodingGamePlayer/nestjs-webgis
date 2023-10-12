@@ -93,7 +93,9 @@ describe('AuthService', () => {
       });
 
       it('should throw an 400 error when user already exists', async () => {
-        await userRepository.create(signUpReqDto);
+        const newUser = await service.createUserObject(signUpReqDto);
+
+        await userRepository.create(newUser);
 
         expect(service.validateNewUser(signUpReqDto)).rejects.toThrow(
           BadRequestException,

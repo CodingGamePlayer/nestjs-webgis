@@ -36,6 +36,11 @@ describe('AuthController (e2e)', () => {
     await app.init();
   });
 
+  afterAll(async () => {
+    await userRepository.deleteAll();
+    await app.close();
+  });
+
   describe('/auth/v1/signup (POST)', () => {
     let user = new SignUpReqDto();
 
@@ -464,10 +469,5 @@ describe('AuthController (e2e)', () => {
     //     .set('refreshtoken', tokens.refreshToken)
     //     .expect(401);
     // });
-  });
-
-  afterAll(async () => {
-    await app.close();
-    await userRepository.deleteAll();
   });
 });

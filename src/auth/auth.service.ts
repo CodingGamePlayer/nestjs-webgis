@@ -36,9 +36,10 @@ export class AuthService {
       ...signUpReqDto,
       password: hashedPassword,
     };
-    return this.userToSignUpResDto(
-      await this.userRepository.create(createdUser),
-    );
+
+    const newUser = this.createUserObject(createdUser);
+
+    return this.userToSignUpResDto(await this.userRepository.create(newUser));
   }
 
   /**
@@ -296,5 +297,13 @@ export class AuthService {
 
   userToSignUpResDto(user: User): SignUpResDto {
     return new SignUpResDto(user.name, user.email, user.company);
+  }
+
+  createUserObject(props: Object): User {
+    const user = new User();
+
+    Object.assign(user, props);
+
+    return user;
   }
 }
