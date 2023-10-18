@@ -25,5 +25,5 @@ export class SendMailReqDto {
     type: String,
     example: 'http://localhost:3000/auth/v1/confirm-email?token=123456789',
   })
-  confirmationLink: string;
+  redirection: string;
 }

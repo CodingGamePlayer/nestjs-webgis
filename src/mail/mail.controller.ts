@@ -10,11 +10,35 @@ import { ApiCommonResponses } from 'src/decorators/api-common-res.decorator';
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 
-  @Post('send-confirmation-email')
+  @Post('confirmation')
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiCommonResponses()
   async sendConfirmationEmail(@Body() sendMailReqDto: SendMailReqDto) {
     await this.mailService.sendConfirmationEmail(sendMailReqDto);
+  }
+
+  @Post('reset-password')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiCommonResponses()
+  async sendResetPasswordEmail(@Body() sendMailReqDto: SendMailReqDto) {
+    await this.mailService.sendResetPasswordEmail(sendMailReqDto);
+  }
+
+  @Post('welcome')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiCommonResponses()
+  async sendWelcomeEmail(@Body() sendMailReqDto: SendMailReqDto) {
+    await this.mailService.sendWelcomeEmail(sendMailReqDto);
+  }
+
+  @Post('goodbye')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiCommonResponses()
+  async sendGoodbyeEmail(@Body() sendMailReqDto: SendMailReqDto) {
+    await this.mailService.sendGoodbyeEmail(sendMailReqDto);
   }
 }
